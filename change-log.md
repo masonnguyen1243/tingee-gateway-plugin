@@ -25,6 +25,18 @@
 
 -->
 
+### 2026-06-03 — [Task T4.1] process_payment() Chế độ A — QR động + lưu meta
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **`Tingee_API::create_dynamic_qr()`** — thêm static method mới vào `class-tingee-api.php`, gọi `POST /v1/generate-dynamic-qr`, nhận về `qrCode`, `qrAccount`, `billId`.
+  - **`process_payment()`** — triển khai đầy đủ cho Chế độ A: (1) validate cấu hình `va_account_number` + `bank_bin`; (2) gọi `create_dynamic_qr()` với amount (int VND), purpose = prefix + order number; (3) lưu 5 meta HPOS-safe (`_tingee_bill_id`, `_tingee_qr_code`, `_tingee_qr_account`, `_tingee_amount`, `_tingee_purpose`); (4) đặt đơn On-Hold kèm note billId; (5) redirect về thank-you page. Chế độ B giữ placeholder, sẽ triển khai ở T6.1.
+  - **Settings mới**: thêm 2 field `bank_bin` (bắt buộc cho QR API) và `payment_prefix` (tiền tố nội dung, ví dụ "DH").
+- **File thay đổi**: `includes/class-tingee-api.php`, `includes/class-tingee-gateway.php`
+- **Trạng thái DoD**: Đạt — code đúng flow, HPOS-safe, escape/sanitize đầy đủ. Cần test thực tế với credentials Tingee.
+- **Cần Cường test**: Vào Settings → thêm `bank_bin` (BIN ngân hàng VA của bạn). Tạo đơn hàng test → chọn Tingee → Place Order → kiểm tra: đơn chuyển On-Hold, order note có billId, order meta có `_tingee_bill_id` / `_tingee_qr_code`.
+
+---
+
 ### 2026-06-03 — [Task T3.1 + T3.2 + T3.3] WC Payment Gateway & Settings hoàn chỉnh
 - **Loại**: [Tính năng mới]
 - **Mô tả**:

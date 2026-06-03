@@ -35,6 +35,13 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	public $integration_mode;
 
 	/**
+	 * BIN code của ngân hàng liên kết với VA account (bắt buộc để sinh QR).
+	 *
+	 * @var string
+	 */
+	public $bank_bin;
+
+/**
 	 * Khởi tạo gateway — thiết lập ID, tiêu đề, mô tả, và đọc toàn bộ settings.
 	 */
 	public function __construct() {
@@ -68,6 +75,9 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		// Chế độ tích hợp A hoặc B.
 		$this->integration_mode = $this->get_option( 'integration_mode', 'mode_a' );
+
+		// BIN code ngân hàng VA.
+		$this->bank_bin = $this->get_option( 'bank_bin', '' );
 
 		// Lưu settings khi admin nhấn nút "Save changes".
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -206,9 +216,19 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'title'       => __( 'Số tài khoản VA nhận tiền', 'tingee-gateway' ),
 				'type'        => 'text',
 				'description' => __( 'Số tài khoản ảo (Virtual Account — vaAccountNumber) của merchant trên Tingee. Dùng để hiển thị QR cho khách và nhận thanh toán. Lấy trong mục quản lý tài khoản tại app.tingee.vn.', 'tingee-gateway' ),
-				'desc_tip'    => false, // Hiển thị đầy đủ mô tả vì admin cần đọc rõ.
+				'desc_tip'    => false,
 				'default'     => '',
 				'placeholder' => 'VD: 9704000000000018',
+			),
+
+			'bank_bin' => array(
+				'title'       => __( 'Mã BIN ngân hàng (bankBin)', 'tingee-gateway' ),
+				'type'        => 'text',
+				/* translators: examples of Vietnamese bank BIN codes */
+				'description' => __( 'Mã BIN của ngân hàng liên kết với tài khoản VA ở trên — bắt buộc để sinh QR động. Xem danh sách BIN trong tài liệu Tingee. Ví dụ: <code>970422</code> (MB Bank), <code>970436</code> (Vietcombank), <code>970415</code> (VietinBank).', 'tingee-gateway' ),
+				'desc_tip'    => false,
+				'default'     => '',
+				'placeholder' => 'VD: 970422',
 			),
 
 			// Nút kiểm tra kết nối — render bởi generate_test_connection_button_html().
@@ -264,19 +284,90 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 	/**
 	 * Xử lý thanh toán khi khách đặt hàng.
-	 * Sẽ triển khai đầy đủ ở Task T4.1 (Chế độ A) và T6.1 (Chế độ B).
+	 *
+	 * Chế độ A (QR + Webhook):
+	 *   - Gọi Tingee API tạo QR động.
+	 *   - Lưu billId, qrCode, qrAccount vào order meta (HPOS-safe).
+	 *   - Đặt đơn về On-Hold, chờ Webhook xác nhận.
+	 *   - Redirect khách đến trang cảm ơn (hiển thị QR ở T4.2).
+	 *
+	 * Chế độ B (Redirect): sẽ triển khai đầy đủ ở T6.1.
 	 *
 	 * @param int $order_id ID đơn hàng WooCommerce.
-	 * @return array Kết quả redirect.
+	 * @return array|void Mảng { result, redirect } hoặc void khi thất bại.
 	 */
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		// Đặt đơn về On-Hold, chờ xác nhận từ Webhook Tingee.
-		// Logic QR + Tingee API sẽ được thêm ở Giai đoạn 4.
-		$order->update_status( 'on-hold', __( 'Chờ thanh toán qua Tingee.', 'tingee-gateway' ) );
+		// Chế độ B — sẽ triển khai ở T6.1. Tạm thời đặt On-Hold và redirect.
+		if ( 'mode_b' === $this->integration_mode ) {
+			$order->update_status( 'on-hold', __( 'Chờ thanh toán qua Tingee (Chế độ B — Redirect).', 'tingee-gateway' ) );
+			WC()->cart->empty_cart();
+			return array(
+				'result'   => 'success',
+				'redirect' => $this->get_return_url( $order ),
+			);
+		}
 
-		// Xóa giỏ hàng.
+		// --- Chế độ A: QR động + Webhook ---
+
+		// Kiểm tra cấu hình bắt buộc để sinh QR.
+		if ( empty( $this->va_account_number ) || empty( $this->bank_bin ) ) {
+			wc_add_notice(
+				__( 'Cổng thanh toán Tingee chưa cấu hình đầy đủ (thiếu số VA hoặc mã BIN ngân hàng). Vui lòng liên hệ quản trị viên.', 'tingee-gateway' ),
+				'error'
+			);
+			return array( 'result' => 'failure' );
+		}
+
+		// Chuẩn bị tham số tạo QR.
+		// amount: WooCommerce trả float, Tingee nhận int (VND không có thập phân).
+		$amount = (int) round( $order->get_total() );
+
+		// purpose: số đơn hàng — hiển thị trong QR để khách tham chiếu.
+		$purpose = (string) $order->get_order_number();
+
+		$qr_params = array(
+			'vaAccountNumber' => $this->va_account_number,
+			'qrCodeType'      => 'dynamic-one-time-payment',
+			'bankBin'         => $this->bank_bin,
+			'amount'          => $amount,
+			'purpose'         => $purpose,
+			'expireInMinute'  => 30,
+		);
+
+		// Gọi API Tingee tạo QR động.
+		$result = Tingee_API::create_dynamic_qr( $qr_params );
+
+		if ( ! $result['success'] ) {
+			wc_add_notice(
+				__( 'Không thể tạo mã QR thanh toán. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'tingee-gateway' ),
+				'error'
+			);
+			return array( 'result' => 'failure' );
+		}
+
+		$data = $result['data'];
+
+		// Lưu thông tin QR vào order meta — HPOS-safe (dùng $order API, không dùng update_post_meta).
+		$order->update_meta_data( '_tingee_bill_id',    sanitize_text_field( $data['billId'] ) );
+		$order->update_meta_data( '_tingee_qr_code',    sanitize_text_field( $data['qrCode'] ) );
+		$order->update_meta_data( '_tingee_qr_account', sanitize_text_field( $data['qrAccount'] ) );
+		$order->update_meta_data( '_tingee_amount',     $amount );
+		$order->update_meta_data( '_tingee_purpose',    $purpose );
+		$order->save();
+
+		// Đặt đơn về On-Hold — chờ Webhook từ Tingee xác nhận thanh toán.
+		$order->update_status(
+			'on-hold',
+			sprintf(
+				/* translators: %s: Tingee billId */
+				__( 'Chờ thanh toán qua Tingee. Mã hóa đơn (billId): %s', 'tingee-gateway' ),
+				sanitize_text_field( $data['billId'] )
+			)
+		);
+
+		// Xóa giỏ hàng sau khi đơn được tạo thành công.
 		WC()->cart->empty_cart();
 
 		return array(

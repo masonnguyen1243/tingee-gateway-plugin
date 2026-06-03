@@ -308,6 +308,31 @@ class Tingee_API {
 		return self::request( '/v1/get-banks', array(), 'GET', $client_id, $secret_token );
 	}
 
+	/**
+	 * Tạo QR động cho một đơn hàng — Chế độ A (QR + Webhook).
+	 *
+	 * Endpoint: POST /v1/generate-dynamic-qr
+	 *
+	 * Response data: { qrCode, qrAccount, billId }
+	 *   - qrCode     : Chuỗi nội dung QR để render thành hình ảnh.
+	 *   - qrAccount  : Số tài khoản nhận tiền (hiển thị cho khách).
+	 *   - billId     : Mã hóa đơn trong hệ thống Tingee — dùng để map webhook → đơn hàng.
+	 *
+	 * @param array $params {
+	 *     @type string $vaAccountNumber  Số VA của merchant (bắt buộc).
+	 *     @type string $qrCodeType       'dynamic-one-time-payment' hoặc 'dynamic-recurring-payment' (bắt buộc).
+	 *     @type string $bankBin          BIN code của ngân hàng VA (bắt buộc).
+	 *     @type int    $amount           Số tiền VND, không thập phân (bắt buộc).
+	 *     @type string $purpose          Nội dung chuyển khoản hiển thị trên QR (không bắt buộc).
+	 *     @type int    $expireInMinute   Số phút QR còn hiệu lực (bắt buộc).
+	 *     @type int    $merchantId       Master Merchant ID (không bắt buộc).
+	 * }
+	 * @return array Kết quả chuẩn hóa từ self::request().
+	 */
+	public static function create_dynamic_qr( $params ) {
+		return self::request( '/v1/generate-dynamic-qr', $params );
+	}
+
 	// -------------------------------------------------------------------------
 	// PHẦN 4: Xác minh webhook
 	// -------------------------------------------------------------------------
