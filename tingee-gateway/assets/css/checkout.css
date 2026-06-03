@@ -1,0 +1,159 @@
+/**
+ * Tingee Gateway — CSS cho trang thank-you (hiển thị QR và thông tin chuyển khoản).
+ *
+ * @package Tingee_Gateway
+ */
+
+/* ===================================================
+   Hộp thanh toán chính
+   =================================================== */
+.tingee-payment-box {
+	border: 2px solid #e0e0e0;
+	border-radius: 10px;
+	padding: 28px 24px;
+	margin: 24px 0;
+	background: #fff;
+	text-align: center;
+	max-width: 500px;
+}
+
+.tingee-payment-box__title {
+	font-size: 1.2em;
+	font-weight: 700;
+	margin: 0 0 20px;
+	color: #1a1a2e;
+}
+
+/* ===================================================
+   Ảnh QR code
+   =================================================== */
+.tingee-payment-box__qr {
+	margin-bottom: 24px;
+}
+
+.tingee-payment-box__qr img {
+	max-width: 220px;
+	width: 100%;
+	height: auto;
+	border: 5px solid #fff;
+	box-shadow: 0 3px 12px rgba( 0, 0, 0, 0.15 );
+	border-radius: 4px;
+}
+
+/* ===================================================
+   Bảng thông tin chuyển khoản
+   =================================================== */
+.tingee-payment-box__info {
+	text-align: left;
+	margin-bottom: 20px;
+}
+
+.tingee-transfer-info {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.95em;
+}
+
+.tingee-transfer-info th,
+.tingee-transfer-info td {
+	padding: 9px 10px;
+	border-bottom: 1px solid #f2f2f2;
+	vertical-align: middle;
+}
+
+.tingee-transfer-info th {
+	width: 42%;
+	color: #666;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.tingee-transfer-info td {
+	color: #1a1a2e;
+	word-break: break-all;
+}
+
+.tingee-amount-value {
+	font-size: 1.05em;
+	color: #dc2626;
+	font-weight: 700;
+}
+
+/* ===================================================
+   Nút sao chép
+   =================================================== */
+.tingee-copy-btn {
+	display: inline-block;
+	background: none;
+	border: 1px solid #d1d5db;
+	border-radius: 4px;
+	cursor: pointer;
+	padding: 2px 7px;
+	margin-left: 6px;
+	font-size: 12px;
+	color: #555;
+	vertical-align: middle;
+	transition: background 0.15s, border-color 0.15s;
+	line-height: 1.5;
+}
+
+.tingee-copy-btn:hover {
+	background: #f3f4f6;
+	border-color: #9ca3af;
+}
+
+.tingee-copy-btn.tingee-copied {
+	color: #059669;
+	border-color: #6ee7b7;
+}
+
+/* ===================================================
+   Trạng thái chờ / thành công (dùng bởi T4.3 JS poll)
+   =================================================== */
+.tingee-payment-box__status {
+	margin: 16px 0 12px;
+	font-size: 0.95em;
+	min-height: 28px;
+}
+
+.tingee-status-waiting {
+	color: #d97706;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.tingee-status-waiting::before {
+	content: "";
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 2px solid #d97706;
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: tingee-spin 0.8s linear infinite;
+	flex-shrink: 0;
+}
+
+.tingee-status-success {
+	color: #059669;
+	font-weight: 600;
+	font-size: 1em;
+}
+
+@keyframes tingee-spin {
+	to {
+		transform: rotate( 360deg );
+	}
+}
+
+/* ===================================================
+   Ghi chú nhỏ phía dưới
+   =================================================== */
+.tingee-payment-box__note {
+	font-size: 0.82em;
+	color: #9ca3af;
+	margin: 0;
+	line-height: 1.5;
+}

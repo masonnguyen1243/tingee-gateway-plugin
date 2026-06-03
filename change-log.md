@@ -25,6 +25,20 @@
 
 -->
 
+### 2026-06-03 — [Task T4.2] Hiển thị QR + hộp thông tin chuyển khoản trên trang thank-you
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **`thankyou_page($order_id)`** — method mới trong `Tingee_Gateway`: đọc 5 meta HPOS-safe (`_tingee_bill_id`, `_tingee_qr_code`, `_tingee_qr_account`, `_tingee_amount`, `_tingee_purpose`) và render hộp QR. QR code hỗ trợ cả 2 định dạng: URL (dùng `esc_url`) và base64 PNG (dùng `esc_attr`). Số tiền format kiểu Việt (150.000 ₫). Sinh nonce `tingee_check_status_{id}` vào `data-nonce` để T4.3 dùng khi poll. Không hiển thị nếu đơn đã thanh toán hoặc thiếu meta.
+  - **`enqueue_checkout_scripts()`** — enqueue `assets/css/checkout.css` chỉ trên trang order-received, chỉ khi payment method là `tingee_gateway` (tránh load thừa).
+  - Hook `woocommerce_thankyou_tingee_gateway` — tự scope theo payment method, chỉ chạy với đơn Tingee.
+  - **`assets/css/checkout.css`** — file mới: style cho hộp QR, bảng thông tin, nút sao chép, animation spinner chờ thanh toán, trạng thái success (dùng bởi T4.3).
+  - Nút "Sao chép" đã có HTML/CSS (T4.4 sẽ thêm JS click handler).
+- **File thay đổi**: `includes/class-tingee-gateway.php`, `assets/css/checkout.css` (mới)
+- **Trạng thái DoD**: Đạt — QR và bảng thông tin render đúng. Mọi output đã escape. Nonce sẵn sàng cho T4.3.
+- **Cần Cường test**: Đặt đơn hàng → chọn Tingee → Place Order → kiểm tra trang thank-you hiện QR + số TK + số tiền + nội dung CK. Nếu chưa hiển thị: xem F12 Console xem có lỗi JS không; kiểm tra tab Network xem `checkout.css` được tải không.
+
+---
+
 ### 2026-06-03 — [Fix] Parse response Tingee — hỗ trợ thêm Kiểu C (object không có field `code`)
 - **Loại**: [Fix lỗi]
 - **Mô tả**: Log báo `HTTP=200 code=:` khi gọi `/v1/get-banks` — Tingee trả object JSON không có field `code` nhưng code cũ chỉ xử lý 2 kiểu (array thẳng và object có `code`). Thêm nhánh Kiểu C: object không có `code` + HTTP 2xx → coi là thành công; lấy `$parsed_body['data']` nếu có, ngược lại dùng cả object.

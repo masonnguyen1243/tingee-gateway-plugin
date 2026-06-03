@@ -87,6 +87,12 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		// Enqueue JS admin chỉ khi đang ở trang Settings của gateway này.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+
+		// Hiển thị QR + thông tin chuyển khoản trên trang thank-you — chỉ chạy với đơn Tingee.
+		add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
+
+		// Enqueue CSS/JS frontend chỉ trên trang thank-you.
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_checkout_scripts' ) );
 	}
 
 	/**
@@ -377,5 +383,157 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'result'   => 'success',
 			'redirect' => $this->get_return_url( $order ),
 		);
+	}
+
+	/**
+	 * Enqueue CSS và JS cho trang thank-you.
+	 * Chỉ load khi đang ở trang xác nhận đơn hàng (order-received) và đơn dùng Tingee.
+	 */
+	public function enqueue_checkout_scripts() {
+		// is_order_received_page() trả true trên URL /checkout/order-received/.
+		if ( ! is_order_received_page() ) {
+			return;
+		}
+
+		// Lấy order từ query var để kiểm tra payment method trước khi load tài nguyên.
+		$order_id = absint( get_query_var( 'order-received' ) );
+		if ( ! $order_id ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order || $this->id !== $order->get_payment_method() ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'tingee-checkout',
+			TINGEE_PLUGIN_URL . 'assets/css/checkout.css',
+			array(),
+			TINGEE_PLUGIN_VERSION
+		);
+	}
+
+	/**
+	 * Hiển thị hộp QR code và thông tin chuyển khoản trên trang thank-you.
+	 * Hook: woocommerce_thankyou_tingee_gateway — WooCommerce tự scope theo payment method.
+	 *
+	 * Dữ liệu đọc từ order meta được lưu bởi process_payment() ở T4.1:
+	 *   _tingee_bill_id    — mã hóa đơn Tingee.
+	 *   _tingee_qr_code    — chuỗi QR code (base64 PNG hoặc URL).
+	 *   _tingee_qr_account — số tài khoản VA hiển thị cho khách.
+	 *   _tingee_amount     — số tiền (int VND).
+	 *   _tingee_purpose    — nội dung chuyển khoản.
+	 *
+	 * @param int $order_id ID đơn hàng.
+	 */
+	public function thankyou_page( $order_id ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		// Đọc meta đã lưu từ T4.1.
+		$bill_id    = $order->get_meta( '_tingee_bill_id' );
+		$qr_code    = $order->get_meta( '_tingee_qr_code' );
+		$qr_account = $order->get_meta( '_tingee_qr_account' );
+		$amount     = (int) $order->get_meta( '_tingee_amount' );
+		$purpose    = $order->get_meta( '_tingee_purpose' );
+
+		// Không hiển thị nếu thiếu dữ liệu hoặc đơn đã hoàn tất.
+		if ( empty( $bill_id ) || empty( $qr_code ) ) {
+			return;
+		}
+		if ( $order->is_paid() ) {
+			return;
+		}
+
+		// Format số tiền theo kiểu Việt Nam: 150.000 ₫.
+		$amount_display = number_format( $amount, 0, ',', '.' ) . ' ₫';
+
+		// Nonce để JS poll trạng thái (sẽ dùng ở T4.3).
+		$status_nonce = wp_create_nonce( 'tingee_check_status_' . $order_id );
+		?>
+		<section class="tingee-payment-box"
+			id="tingee-payment-box"
+			data-order-id="<?php echo esc_attr( $order_id ); ?>"
+			data-nonce="<?php echo esc_attr( $status_nonce ); ?>">
+
+			<h2 class="tingee-payment-box__title">
+				<?php esc_html_e( 'Quét mã QR để thanh toán', 'tingee-gateway' ); ?>
+			</h2>
+
+			<div class="tingee-payment-box__qr">
+				<?php
+				// QR code có thể là URL hoặc chuỗi base64 PNG.
+				if ( 0 === strpos( $qr_code, 'http' ) ) {
+					echo '<img src="' . esc_url( $qr_code ) . '"'
+						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
+						. ' width="220" height="220" />';
+				} else {
+					// base64: chỉ chứa [A-Za-z0-9+/=] — esc_attr() an toàn.
+					echo '<img src="data:image/png;base64,' . esc_attr( $qr_code ) . '"'
+						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
+						. ' width="220" height="220" />';
+				}
+				?>
+			</div>
+
+			<div class="tingee-payment-box__info">
+				<table class="tingee-transfer-info">
+					<tbody>
+						<tr>
+							<th><?php esc_html_e( 'Số tài khoản', 'tingee-gateway' ); ?></th>
+							<td>
+								<span id="tingee-field-account"><?php echo esc_html( $qr_account ); ?></span>
+								<button type="button"
+									class="tingee-copy-btn"
+									data-copy-target="tingee-field-account"
+									aria-label="<?php esc_attr_e( 'Sao chép số tài khoản', 'tingee-gateway' ); ?>">
+									<?php esc_html_e( 'Sao chép', 'tingee-gateway' ); ?>
+								</button>
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Số tiền', 'tingee-gateway' ); ?></th>
+							<td>
+								<span id="tingee-field-amount-raw" class="tingee-amount-value"><?php echo esc_html( $amount_display ); ?></span>
+								<span id="tingee-field-amount" style="display:none;"><?php echo esc_html( $amount ); ?></span>
+								<button type="button"
+									class="tingee-copy-btn"
+									data-copy-target="tingee-field-amount"
+									aria-label="<?php esc_attr_e( 'Sao chép số tiền', 'tingee-gateway' ); ?>">
+									<?php esc_html_e( 'Sao chép', 'tingee-gateway' ); ?>
+								</button>
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Nội dung chuyển khoản', 'tingee-gateway' ); ?></th>
+							<td>
+								<span id="tingee-field-purpose"><?php echo esc_html( $purpose ); ?></span>
+								<button type="button"
+									class="tingee-copy-btn"
+									data-copy-target="tingee-field-purpose"
+									aria-label="<?php esc_attr_e( 'Sao chép nội dung', 'tingee-gateway' ); ?>">
+									<?php esc_html_e( 'Sao chép', 'tingee-gateway' ); ?>
+								</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="tingee-payment-box__status" id="tingee-payment-status">
+				<span class="tingee-status-waiting">
+					<?php esc_html_e( 'Đang chờ xác nhận thanh toán...', 'tingee-gateway' ); ?>
+				</span>
+			</div>
+
+			<p class="tingee-payment-box__note">
+				<?php esc_html_e( 'Trang sẽ tự động cập nhật khi nhận được xác nhận thanh toán.', 'tingee-gateway' ); ?>
+			</p>
+
+		</section>
+		<?php
 	}
 }
