@@ -37,7 +37,7 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 - [x] **T2.1** 🔴 `class-tingee-api.php`: hàm `tingee_generate_signature($timestamp, $body, $secret)` dùng HMAC-SHA512 theo công thức `timestamp + ":" + body`.
   - **DoD**: Unit test/so khớp với code mẫu PHP trong tài liệu Tingee ra cùng chữ ký.
-- [ ] **T2.2** 🔴 Hàm tạo timestamp `yyyyMMddHHmmssSSS` theo **UTC+7**.
+- [x] **T2.2** 🔴 Hàm tạo timestamp `yyyyMMddHHmmssSSS` theo **UTC+7**.
 - [ ] **T2.3** 🔴 Hàm `tingee_request($endpoint, $body)` gắn đủ headers (`x-client-id`, `x-request-timestamp`, `x-signature`, `Content-Type`), gửi qua `wp_remote_post`, parse JSON, xử lý lỗi mạng.
   - **DoD**: Gọi thử một endpoint đơn giản (vd danh sách ngân hàng `/v1/get-banks`) trả dữ liệu.
 - [ ] **T2.4** 🟡 Hàm "Kiểm tra kết nối" dùng ở settings (F2).

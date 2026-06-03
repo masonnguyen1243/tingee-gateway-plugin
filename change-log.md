@@ -25,6 +25,15 @@
 
 -->
 
+### 2026-06-03 — [Task T2.2] Fix generate_timestamp() — yyyyMMddHHmmssSSS UTC+7
+- **Loại**: [Cải thiện] [Fix lỗi]
+- **Mô tả**: Fix edge case trong `generate_timestamp()`: trước đây dùng `new DateTime()` và `microtime(true)` tách biệt có thể bị lệch mili-giây khi CPU tải nặng. Nay dùng `DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)))` làm nguồn duy nhất cho cả phần giây lẫn mili-giây, đảm bảo output luôn nhất quán 17 ký tự. Đã test edge case `usec=007500` → `ms=007` (leading zero đúng).
+- **File thay đổi**: `tingee-gateway/includes/class-tingee-api.php`
+- **Trạng thái DoD**: Đạt — output đúng định dạng `yyyyMMddHHmmssSSS`, 17 ký tự, toàn số, múi giờ UTC+7.
+- **Cần Cường test**: Không cần test riêng; sẽ kiểm chứng thực tế qua T2.3.
+
+---
+
 ### 2026-06-03 — [Task T2.1] Implement lớp Tingee_API — sinh chữ ký HMAC-SHA512
 - **Loại**: [Tính năng mới] [Bảo mật]
 - **Mô tả**: Triển khai đầy đủ `class Tingee_API` trong `includes/class-tingee-api.php` với các phương thức:

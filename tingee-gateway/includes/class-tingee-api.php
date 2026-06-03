@@ -71,17 +71,19 @@ class Tingee_API {
 	 */
 	public static function generate_timestamp() {
 		// Tạo DateTimeZone cho UTC+7.
-		$tz  = new DateTimeZone( 'Asia/Ho_Chi_Minh' ); // UTC+7, tương đương Asia/Bangkok.
-		$now = new DateTime( 'now', $tz );
+		$tz = new DateTimeZone( 'Asia/Ho_Chi_Minh' ); // UTC+7, tương đương Asia/Bangkok.
 
-		// Phần giây và mili-giây: microtime trả về giá trị float giây Unix.
-		// Lấy micro-giây rồi chia 1000 → lấy 3 chữ số mili-giây.
-		$microseconds = (int) round( ( microtime( true ) - floor( microtime( true ) ) ) * 1000 );
+		// Dùng DateTime::createFromFormat với 'U.u' (Unix timestamp + microseconds) làm nguồn
+		// DUY NHẤT cho cả phần giây lẫn mili-giây — tránh lệch giữa hai lần gọi hàm thời gian.
+		// microtime(true) trả về float: phần nguyên = giây Unix, phần thập phân = micro-giây.
+		$now = DateTime::createFromFormat( 'U.u', sprintf( '%.6F', microtime( true ) ) );
+		$now->setTimezone( $tz );
 
-		// Đảm bảo đủ 3 chữ số mili-giây (str_pad bên trái bằng '0').
-		$milliseconds = str_pad( (string) $microseconds, 3, '0', STR_PAD_LEFT );
+		// Lấy mili-giây từ chính đối tượng DateTime (3 chữ số đầu của microsecond).
+		// DateTime::format('u') = 6-digit microsecond → lấy 3 chữ số đầu = mili-giây.
+		$milliseconds = substr( $now->format( 'u' ), 0, 3 );
 
-		// Ghép định dạng: yyyyMMddHHmmss + mili-giây.
+		// Ghép định dạng: yyyyMMddHHmmss + mili-giây (17 ký tự tổng).
 		return $now->format( 'YmdHis' ) . $milliseconds;
 	}
 
