@@ -25,6 +25,14 @@
 
 -->
 
+### 2026-06-03 — [Task T2.4] Xác nhận hoàn thành — Kiểm tra kết nối (F2)
+- **Loại**: [Tính năng mới]
+- **Mô tả**: Rà soát và xác nhận T2.4 đã được triển khai đầy đủ (code nằm trong T2.3 trước). Gồm: AJAX handler `tingee_ajax_test_connection()` có nonce + capability check, UI nút custom HTML field, `admin_enqueue_scripts()` truyền `ajaxUrl`/`nonce`/`i18n` sang JS, `assets/js/admin.js` xử lý click + hiển thị kết quả inline.
+- **File thay đổi**: Không có file mới — code đã có từ T2.3.
+- **Trạng thái DoD**: Đạt.
+
+---
+
 ### 2026-06-03 — [Fix] Parse response Tingee — hỗ trợ array thẳng
 - **Loại**: [Fix lỗi]
 - **Mô tả**: Tingee trả về array JSON thẳng `[{...},{...}]` thay vì `{"code":"00","data":[...]}` như docs mẫu. Fix logic parse trong `request()` để nhận diện cả 2 kiểu response: array thẳng (list) → coi là thành công ngay khi HTTP 2xx; object có field `code` → kiểm tra `code == "00"` như cũ.
