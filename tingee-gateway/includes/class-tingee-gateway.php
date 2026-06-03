@@ -2,10 +2,6 @@
 /**
  * WooCommerce Payment Gateway chính của Tingee.
  *
- * File này sẽ được triển khai đầy đủ ở Giai đoạn 3 & 4.
- * Hiện tại khai báo class extends WC_Payment_Gateway với thông tin cơ bản
- * để plugin xuất hiện trong WooCommerce → Settings → Payments.
- *
  * @package Tingee_Gateway
  */
 
@@ -21,13 +17,25 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - Hiển thị phương thức thanh toán trên checkout.
  * - Xử lý đơn hàng khi khách chọn Tingee (process_payment).
  * - Hiển thị QR và thông tin chuyển khoản.
- *
- * Sẽ triển khai đầy đủ ở Task T3.1 – T4.4.
  */
 class Tingee_Gateway extends WC_Payment_Gateway {
 
 	/**
-	 * Khởi tạo gateway — thiết lập ID, tiêu đề, mô tả cơ bản.
+	 * Số tài khoản VA của merchant dùng để nhận thanh toán.
+	 *
+	 * @var string
+	 */
+	public $va_account_number;
+
+	/**
+	 * Chế độ tích hợp: 'mode_a' (QR + Webhook) hoặc 'mode_b' (Redirect).
+	 *
+	 * @var string
+	 */
+	public $integration_mode;
+
+	/**
+	 * Khởi tạo gateway — thiết lập ID, tiêu đề, mô tả, và đọc toàn bộ settings.
 	 */
 	public function __construct() {
 		// ID duy nhất của gateway này trong WooCommerce.
@@ -36,24 +44,32 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		// Icon hiển thị cạnh tên gateway ở trang checkout (để trống tạm thời).
 		$this->icon = '';
 
-		// Có form thanh toán hiển thị trên checkout không? Không — dùng redirect/QR.
+		// Có form thanh toán hiển thị trực tiếp trên checkout không? Không — dùng redirect/QR.
 		$this->has_fields = false;
 
-		// Tiêu đề và mô tả hiển thị trong trang Settings WooCommerce.
+		// Tiêu đề và mô tả hiển thị trong trang Settings WooCommerce (không phải trang checkout).
 		$this->method_title       = __( 'Tingee Gateway', 'tingee-gateway' );
 		$this->method_description = __( 'Thanh toán qua QR chuyển khoản ngân hàng sử dụng cổng Tingee (by HENO).', 'tingee-gateway' );
 
-		// Nạp các field cấu hình (sẽ triển khai đầy đủ ở T3.2).
+		// Nạp các field cấu hình.
 		$this->init_form_fields();
 
-		// Nạp giá trị settings đã lưu.
+		// Nạp giá trị settings đã lưu vào $this->settings.
 		$this->init_settings();
 
-		// Đọc giá trị từ settings để dùng trong plugin.
+		// --- Đọc từng option ra biến riêng để dùng trong toàn plugin ---
+
+		// Hiển thị ở trang checkout phía khách.
 		$this->title       = $this->get_option( 'title', __( 'Chuyển khoản ngân hàng (Tingee)', 'tingee-gateway' ) );
 		$this->description = $this->get_option( 'description', __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'tingee-gateway' ) );
 
-		// Lưu settings khi admin nhấn Save.
+		// Credentials và tài khoản VA.
+		$this->va_account_number = $this->get_option( 'va_account_number', '' );
+
+		// Chế độ tích hợp A hoặc B.
+		$this->integration_mode = $this->get_option( 'integration_mode', 'mode_a' );
+
+		// Lưu settings khi admin nhấn nút "Save changes".
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 
 		// Enqueue JS admin chỉ khi đang ở trang Settings của gateway này.
@@ -98,23 +114,29 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'tingee_test_connection_nonce' ),
 				'i18n'    => array(
-					'test_btn'        => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
-					'testing'         => __( 'Đang kiểm tra...', 'tingee-gateway' ),
-					'fill_credentials'=> __( 'Vui lòng nhập Client ID và Secret Token trước.', 'tingee-gateway' ),
-					'network_error'   => __( 'Lỗi kết nối mạng. Vui lòng thử lại.', 'tingee-gateway' ),
+					'test_btn'         => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
+					'testing'          => __( 'Đang kiểm tra...', 'tingee-gateway' ),
+					'fill_credentials' => __( 'Vui lòng nhập Client ID và Secret Token trước.', 'tingee-gateway' ),
+					'network_error'    => __( 'Lỗi kết nối mạng. Vui lòng thử lại.', 'tingee-gateway' ),
 				),
 			)
 		);
 	}
 
 	/**
-	 * Khai báo các field cấu hình trong trang Settings.
-	 * Sẽ triển khai đầy đủ ở Task T3.2.
+	 * Khai báo toàn bộ field cấu hình trong trang Settings — theo product-spec F3.
+	 *
+	 * Cấu trúc 2 nhóm:
+	 *  1. Hiển thị tại checkout (tiêu đề, mô tả).
+	 *  2. Kết nối & cấu hình Tingee (môi trường, credentials, VA account, chế độ A/B).
 	 */
 	public function init_form_fields() {
 		$this->form_fields = array(
 
-			// --- Bật/Tắt ---
+			// ================================================================
+			// NHÓM 1 — Hiển thị tại trang checkout
+			// ================================================================
+
 			'enabled' => array(
 				'title'   => __( 'Bật/Tắt', 'tingee-gateway' ),
 				'type'    => 'checkbox',
@@ -122,7 +144,6 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'default' => 'no',
 			),
 
-			// --- Thông tin hiển thị ---
 			'title' => array(
 				'title'       => __( 'Tiêu đề', 'tingee-gateway' ),
 				'type'        => 'text',
@@ -138,18 +159,20 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'default'     => __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'tingee-gateway' ),
 			),
 
-			// --- Tiêu đề phân vùng: Kết nối Tingee ---
+			// ================================================================
+			// NHÓM 2 — Kết nối & cấu hình Tingee
+			// ================================================================
+
 			'connection_section' => array(
-				'title' => __( 'Kết nối Tingee', 'tingee-gateway' ),
-				'type'  => 'title',
+				'title'       => __( 'Kết nối Tingee', 'tingee-gateway' ),
+				'type'        => 'title',
 				/* translators: %s: link đến trang Developers Tingee */
 				'description' => sprintf(
-					__( 'Lấy Client ID và Secret Token tại <a href="%s" target="_blank">trang Developers của Tingee</a>.', 'tingee-gateway' ),
+					__( 'Lấy Client ID và Secret Token tại <a href="%s" target="_blank" rel="noopener noreferrer">trang Developers của Tingee</a>.', 'tingee-gateway' ),
 					esc_url( 'https://app.tingee.vn/m/developers' )
 				),
 			),
 
-			// --- Môi trường (UAT / Production) ---
 			'environment' => array(
 				'title'       => __( 'Môi trường', 'tingee-gateway' ),
 				'type'        => 'select',
@@ -162,17 +185,15 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				),
 			),
 
-			// --- Client ID ---
 			'client_id' => array(
 				'title'       => __( 'Client ID', 'tingee-gateway' ),
 				'type'        => 'text',
-				'description' => __( 'Mã định danh đối tác do Tingee cung cấp.', 'tingee-gateway' ),
+				'description' => __( 'Mã định danh đối tác do Tingee cung cấp. Header x-client-id trong mọi API request.', 'tingee-gateway' ),
 				'default'     => '',
 				'desc_tip'    => true,
 				'placeholder' => 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
 			),
 
-			// --- Secret Token ---
 			'secret_token' => array(
 				'title'       => __( 'Secret Token', 'tingee-gateway' ),
 				'type'        => 'password', // Ẩn giá trị như mật khẩu.
@@ -181,22 +202,44 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'desc_tip'    => true,
 			),
 
-			// --- Nút Kiểm tra kết nối (custom HTML field) ---
+			'va_account_number' => array(
+				'title'       => __( 'Số tài khoản VA nhận tiền', 'tingee-gateway' ),
+				'type'        => 'text',
+				'description' => __( 'Số tài khoản ảo (Virtual Account — vaAccountNumber) của merchant trên Tingee. Dùng để hiển thị QR cho khách và nhận thanh toán. Lấy trong mục quản lý tài khoản tại app.tingee.vn.', 'tingee-gateway' ),
+				'desc_tip'    => false, // Hiển thị đầy đủ mô tả vì admin cần đọc rõ.
+				'default'     => '',
+				'placeholder' => 'VD: 9704000000000018',
+			),
+
+			// Nút kiểm tra kết nối — render bởi generate_test_connection_button_html().
 			'test_connection' => array(
 				'title'       => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
-				'type'        => 'test_connection_button', // Type tùy chỉnh — xem generate_test_connection_button_html().
+				'type'        => 'test_connection_button',
 				'description' => __( 'Bấm để kiểm tra Client ID và Secret Token có hợp lệ không (chưa cần lưu).', 'tingee-gateway' ),
 			),
+
+			'integration_mode' => array(
+				'title'       => __( 'Chế độ tích hợp', 'tingee-gateway' ),
+				'type'        => 'select',
+				/* translators: thẻ strong để làm đậm tên chế độ */
+				'description' => __( '<strong>Chế độ A (khuyên dùng)</strong>: Hiển thị QR trực tiếp trên website, tự động xác nhận qua Webhook — khách không rời trang. <strong>Chế độ B</strong>: Chuyển hướng khách sang trang thanh toán của Tingee.', 'tingee-gateway' ),
+				'desc_tip'    => false,
+				'default'     => 'mode_a',
+				'options'     => array(
+					'mode_a' => __( 'Chế độ A — QR động + Webhook (khuyên dùng)', 'tingee-gateway' ),
+					'mode_b' => __( 'Chế độ B — Redirect sang trang Tingee', 'tingee-gateway' ),
+				),
+			),
+
 		);
 	}
 
 	/**
 	 * Render HTML cho field type "test_connection_button" — nút kiểm tra kết nối.
 	 *
-	 * WooCommerce gọi hàm này khi gặp field có type = 'test_connection_button'.
-	 * Convention: generate_{type}_html().
+	 * WooCommerce gọi hàm generate_{type}_html() khi gặp field có type tùy chỉnh.
 	 *
-	 * @param string $key  Tên field (không dùng trực tiếp ở đây).
+	 * @param string $key  Tên field (không dùng trực tiếp).
 	 * @param array  $data Dữ liệu cấu hình của field.
 	 * @return string HTML output.
 	 */
@@ -221,7 +264,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 	/**
 	 * Xử lý thanh toán khi khách đặt hàng.
-	 * Sẽ triển khai đầy đủ ở Task T4.1.
+	 * Sẽ triển khai đầy đủ ở Task T4.1 (Chế độ A) và T6.1 (Chế độ B).
 	 *
 	 * @param int $order_id ID đơn hàng WooCommerce.
 	 * @return array Kết quả redirect.
@@ -229,8 +272,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		// Tạm thời: đặt đơn về On-Hold và redirect về trang thanh toán.
-		// Logic QR + Tingee API sẽ được thêm vào ở Giai đoạn 4.
+		// Đặt đơn về On-Hold, chờ xác nhận từ Webhook Tingee.
+		// Logic QR + Tingee API sẽ được thêm ở Giai đoạn 4.
 		$order->update_status( 'on-hold', __( 'Chờ thanh toán qua Tingee.', 'tingee-gateway' ) );
 
 		// Xóa giỏ hàng.

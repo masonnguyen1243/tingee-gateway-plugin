@@ -25,6 +25,18 @@
 
 -->
 
+### 2026-06-03 — [Task T3.1 + T3.2 + T3.3] WC Payment Gateway & Settings hoàn chỉnh
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **T3.1** — `Tingee_Gateway extends WC_Payment_Gateway` đã đăng ký qua filter `woocommerce_payment_gateways`. Plugin xuất hiện ở WooCommerce → Settings → Payments.
+  - **T3.2** — `init_form_fields()` khai báo đầy đủ 9 field theo product-spec F3: `enabled`, `title`, `description`, `environment`, `client_id`, `secret_token`, `va_account_number`, nút `test_connection`, `integration_mode` (chọn Chế độ A/B).
+  - **T3.3** — `process_admin_options` hook đăng ký chuẩn WooCommerce; `__construct()` đọc lại toàn bộ field mới (`va_account_number`, `integration_mode`) vào property để dùng trong toàn plugin.
+- **File thay đổi**: `includes/class-tingee-gateway.php`, `implementation-plan.md`
+- **Trạng thái DoD**: Đạt — toàn bộ field lưu/đọc qua WooCommerce Options API, không có secret cứng trong code.
+- **Cần Cường test**: Vào WooCommerce → Settings → Payments → Tingee Gateway → điền đầy đủ các field → Save changes → reload trang → kiểm tra tất cả giá trị vẫn giữ nguyên.
+
+---
+
 ### 2026-06-03 — [Task T2.4] Xác nhận hoàn thành — Kiểm tra kết nối (F2)
 - **Loại**: [Tính năng mới]
 - **Mô tả**: Rà soát và xác nhận T2.4 đã được triển khai đầy đủ (code nằm trong T2.3 trước). Gồm: AJAX handler `tingee_ajax_test_connection()` có nonce + capability check, UI nút custom HTML field, `admin_enqueue_scripts()` truyền `ajaxUrl`/`nonce`/`i18n` sang JS, `assets/js/admin.js` xử lý click + hiển thị kết quả inline.

@@ -46,10 +46,18 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 ## GIAI ĐOẠN 3 — WC Payment Gateway & Settings
 
-- [ ] **T3.1** 🔴 `class-tingee-gateway.php` extends `WC_Payment_Gateway`. Đăng ký vào WooCommerce qua filter `woocommerce_payment_gateways`.
+- [x] **T3.1** 🔴 `class-tingee-gateway.php` extends `WC_Payment_Gateway`. Đăng ký vào WooCommerce qua filter `woocommerce_payment_gateways`.
   - **DoD**: Phương thức xuất hiện ở WooCommerce → Settings → Payments.
-- [ ] **T3.2** 🔴 Khai báo `init_form_fields()` với toàn bộ field ở **product-spec F3** (bật/tắt, tiêu đề, mô tả, client id, secret, chọn TK/VA, prefix mã, message thành công, trạng thái đơn, hiển thị tên NH, logo, chế độ tải xuống, **chọn chế độ A/B**).
-- [ ] **T3.3** 🔴 Lưu & đọc lại settings đúng (`process_admin_options`).
+- [x] **T3.2** 🔴 Khai báo `init_form_fields()` với đúng các field ở **product-spec F3**:
+  - Bật/Tắt (`enabled`)
+  - Tiêu đề (`title`) & Mô tả (`description`) — hiển thị ở trang checkout
+  - Môi trường (`environment`): Sandbox / Production
+  - Client ID (`client_id`)
+  - Secret Token (`secret_token`)
+  - Nút "Kiểm tra kết nối" (custom HTML field — gọi `GET /v1/get-banks`)
+  - Số tài khoản VA nhận tiền (`va_account_number`)
+  - Chọn chế độ tích hợp (`integration_mode`): Chế độ A (QR + Webhook) hoặc Chế độ B (Redirect) — admin chọn trong Settings theo product-spec mục 3
+- [x] **T3.3** 🔴 Lưu & đọc lại settings đúng (`process_admin_options`).
   - **DoD**: Đáp ứng acceptance "Lưu được toàn bộ field; reload vẫn giữ".
 
 ---
