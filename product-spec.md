@@ -63,16 +63,17 @@ Tương tự plugin SePay Gateway, nhưng dùng hạ tầng API/Webhook của Ti
 - Nút "Kiểm tra kết nối" gọi thử một API để xác nhận credentials đúng.
 - (Tùy chọn nâng cao) Hỗ trợ tự tạo/đăng ký webhook URL nếu Tingee có API.
 
-### F3. Cấu hình phương thức thanh toán (theo mẫu SePay)
-- Bật/Tắt phương thức.
-- Tiêu đề & Mô tả hiển thị ở checkout.
-- Chọn tài khoản ngân hàng / VA nhận tiền.
-- Tiền tố mã thanh toán (prefix) để đối soát (ví dụ `DH` → `DH1234`).
-- Tùy chỉnh thông báo thành công (hỗ trợ text/HTML/JS để bắn event tracking).
-- Chọn trạng thái đơn hàng sau khi thanh toán đủ (Processing / Completed / tùy chọn).
-- Hiển thị tên ngân hàng: đầy đủ / viết tắt / cả hai.
-- URL logo phương thức.
-- Chế độ tải xuống cho sản phẩm số (Thủ công / Tự động).
+### F3. Cấu hình phương thức thanh toán (bám sát tài liệu Tingee)
+
+Chỉ bao gồm những field thực sự cần thiết theo API Tingee:
+
+- **Bật/Tắt** phương thức (chuẩn WooCommerce).
+- **Tiêu đề & Mô tả** hiển thị ở trang checkout (chuẩn WooCommerce).
+- **Môi trường** (`environment`): Sandbox (UAT) hoặc Production — quyết định Base URL gọi API (`uat-open-api.tingee.vn` vs `open-api.tingee.vn`).
+- **Client ID** (`client_id`): header `x-client-id`, bắt buộc mọi request đến Tingee.
+- **Secret Token** (`secret_token`): khóa bí mật để sinh chữ ký HMAC-SHA512, bắt buộc mọi request.
+- **Nút "Kiểm tra kết nối"**: gọi `GET /v1/get-banks` để xác nhận credentials hợp lệ.
+- **Số tài khoản VA nhận tiền** (`va_account_number`): field `vaAccountNumber` trong Tingee API — VA của merchant dùng để nhận thanh toán và hiển thị QR.
 
 ### F4. Hiển thị thanh toán ở checkout
 - Hiện QR code + box thông tin chuyển khoản (số TK, tên, số tiền, nội dung).
