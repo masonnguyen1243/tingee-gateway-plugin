@@ -212,7 +212,60 @@ function tingee_ajax_test_connection() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Nạp file dịch
+// 6. AJAX handler: kiểm tra trạng thái đơn hàng (trang thank-you, T4.3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Đăng ký AJAX action kiểm tra trạng thái thanh toán.
+ * nopriv: khách chưa đăng nhập vẫn cần gọi được (guest checkout).
+ */
+add_action( 'wp_ajax_tingee_check_status',        'tingee_ajax_check_status' );
+add_action( 'wp_ajax_nopriv_tingee_check_status', 'tingee_ajax_check_status' );
+
+/**
+ * Kiểm tra xem đơn hàng đã được thanh toán chưa.
+ * Trả về JSON { paid, status, redirect_url }.
+ *
+ * Nonce được sinh trong thankyou_page() theo công thức tingee_check_status_{order_id},
+ * đảm bảo mỗi nonce chỉ hợp lệ cho đúng đơn hàng đó.
+ */
+function tingee_ajax_check_status() {
+	// Lấy và validate order_id.
+	$order_id = absint( isset( $_POST['order_id'] ) ? $_POST['order_id'] : 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	if ( ! $order_id ) {
+		wp_send_json_error( array( 'message' => 'Invalid order.' ) );
+	}
+
+	// Xác thực nonce — gắn với từng order_id cụ thể để tránh dò đơn người khác.
+	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'tingee_check_status_' . $order_id ) ) {
+		wp_send_json_error( array( 'message' => 'Invalid nonce.' ), 403 );
+	}
+
+	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		wp_send_json_error( array( 'message' => 'Order not found.' ) );
+	}
+
+	// Chỉ trả thông tin đơn dùng Tingee — tránh lộ trạng thái đơn của gateway khác.
+	if ( 'tingee_gateway' !== $order->get_payment_method() ) {
+		wp_send_json_error( array( 'message' => 'Invalid payment method.' ) );
+	}
+
+	$paid = $order->is_paid();
+
+	wp_send_json_success(
+		array(
+			'paid'         => $paid,
+			'status'       => $order->get_status(),
+			// redirect_url chỉ gửi khi đã thanh toán để tránh lộ URL đơn trước khi xác nhận.
+			'redirect_url' => $paid ? $order->get_view_order_url() : '',
+		)
+	);
+}
+
+// ---------------------------------------------------------------------------
+// 7. Nạp file dịch
 // ---------------------------------------------------------------------------
 add_action( 'init', 'tingee_load_textdomain' );
 

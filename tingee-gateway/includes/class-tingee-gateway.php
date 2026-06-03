@@ -412,6 +412,27 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			array(),
 			TINGEE_PLUGIN_VERSION
 		);
+
+		// JS poll trạng thái đơn hàng (T4.3).
+		wp_enqueue_script(
+			'tingee-checkout',
+			TINGEE_PLUGIN_URL . 'assets/js/checkout.js',
+			array( 'jquery' ),
+			TINGEE_PLUGIN_VERSION,
+			true // Load ở footer.
+		);
+
+		// Truyền dữ liệu PHP sang JS.
+		wp_localize_script(
+			'tingee-checkout',
+			'tingeeCheckout',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'i18n'    => array(
+					'paid' => __( 'Thanh toán thành công! Đang chuyển hướng...', 'tingee-gateway' ),
+				),
+			)
+		);
 	}
 
 	/**

@@ -16,6 +16,8 @@
 
 <!-- MẪU — copy khối này cho mỗi lần làm, điền vào, để lên trên cùng:
 
+-->
+
 ### YYYY-MM-DD — [Task T?.?] Tiêu đề ngắn
 - **Loại**: [Tính năng mới] / [Fix lỗi] / [Bảo mật] / ...
 - **Mô tả**: (làm gì, vì sao)
@@ -24,6 +26,18 @@
 - **Cần Cường test**: (nếu có)
 
 -->
+
+### 2026-06-03 — [Task T4.3] JS poll trạng thái đơn hàng trên trang thank-you
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **`assets/js/checkout.js`** — file mới: đọc `data-order-id` + `data-nonce` từ `#tingee-payment-box`, gọi AJAX `tingee_check_status` mỗi 5 giây, tối đa 36 lần (~3 phút). Khi nhận `paid: true`: thay spinner bằng thông báo thành công (`tingee-status-success`), ẩn ghi chú, chuyển hướng về trang xem đơn sau 3 giây.
+  - **`tingee-gateway.php`** — thêm AJAX handler `tingee_ajax_check_status()`: đăng ký cả `wp_ajax_` + `wp_ajax_nopriv_` (hỗ trợ guest checkout); verify nonce theo công thức `tingee_check_status_{order_id}` (khớp với nonce sinh ở T4.2); xác nhận payment method là Tingee trước khi trả dữ liệu; trả `{ paid, status, redirect_url }`.
+  - **`class-tingee-gateway.php`** (`enqueue_checkout_scripts()`) — enqueue `checkout.js` với dependency `jquery`, load ở footer; `wp_localize_script` truyền `ajaxUrl` và chuỗi i18n `paid`.
+- **File thay đổi**: `assets/js/checkout.js` (mới), `tingee-gateway.php`, `includes/class-tingee-gateway.php`
+- **Trạng thái DoD**: Đạt — poll mỗi 5s, dừng khi paid hoặc hết 3 phút; hiện thành công trong ≤10s sau khi đơn chuyển sang paid (2 vòng poll tối đa). Bảo mật: nonce per-order, payment method check, hỗ trợ nopriv.
+- **Cần Cường test**: Đặt đơn → chọn Tingee → trang thank-you hiện QR. Giả lập: vào WooCommerce → Đơn hàng → tìm đơn → đổi trạng thái sang "Processing" thủ công → trong ≤10s trang tự đổi sang "✓ Thanh toán thành công!".
+
+---
 
 ### 2026-06-03 — [Task T4.2] Hiển thị QR + hộp thông tin chuyển khoản trên trang thank-you
 - **Loại**: [Tính năng mới]
