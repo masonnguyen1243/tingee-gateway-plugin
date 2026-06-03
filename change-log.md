@@ -25,6 +25,14 @@
 
 -->
 
+### 2026-06-03 — [Fix] Parse response Tingee — hỗ trợ thêm Kiểu C (object không có field `code`)
+- **Loại**: [Fix lỗi]
+- **Mô tả**: Log báo `HTTP=200 code=:` khi gọi `/v1/get-banks` — Tingee trả object JSON không có field `code` nhưng code cũ chỉ xử lý 2 kiểu (array thẳng và object có `code`). Thêm nhánh Kiểu C: object không có `code` + HTTP 2xx → coi là thành công; lấy `$parsed_body['data']` nếu có, ngược lại dùng cả object.
+- **File thay đổi**: `includes/class-tingee-api.php`
+- **Trạng thái**: Fix xong.
+
+---
+
 ### 2026-06-03 — [Task T4.1] process_payment() Chế độ A — QR động + lưu meta
 - **Loại**: [Tính năng mới]
 - **Mô tả**:

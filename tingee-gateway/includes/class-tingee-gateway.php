@@ -66,6 +66,9 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		// --- Đọc từng option ra biến riêng để dùng trong toàn plugin ---
 
+		// Trạng thái bật/tắt — BẮT BUỘC phải set thủ công để is_available() hoạt động đúng.
+		$this->enabled = $this->get_option( 'enabled' );
+
 		// Hiển thị ở trang checkout phía khách.
 		$this->title       = $this->get_option( 'title', __( 'Chuyển khoản ngân hàng (Tingee)', 'tingee-gateway' ) );
 		$this->description = $this->get_option( 'description', __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'tingee-gateway' ) );

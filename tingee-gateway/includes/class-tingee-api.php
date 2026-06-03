@@ -244,22 +244,27 @@ class Tingee_API {
 		}
 
 		// --- Chuẩn hóa kết quả ---
-		// Tingee có 2 kiểu response:
-		//   Kiểu A (endpoint danh sách): trả thẳng array JSON — [ {...}, {...} ]
-		//   Kiểu B (endpoint action): bọc trong object — { "code": "00", "message": "...", "data": {...} }
-		// Phân biệt bằng cách kiểm tra $parsed_body có phải array tuần tự (list) không.
-		$is_list = isset( $parsed_body[0] ) || ( is_array( $parsed_body ) && array_values( $parsed_body ) === $parsed_body && ! isset( $parsed_body['code'] ) );
+		// Tingee có 3 kiểu response thực tế:
+		//   Kiểu A: array thẳng          — [ {...}, {...} ]
+		//   Kiểu B: object có code field  — { "code": "00", "message": "...", "data": {...} }
+		//   Kiểu C: object không có code  — { "data": {...} } hoặc { "key": "value", ... }
+		$is_list = isset( $parsed_body[0] );
 
 		if ( $is_list ) {
-			// Kiểu A: array thẳng — HTTP 2xx là đủ để coi là thành công.
+			// Kiểu A: array thẳng — HTTP 2xx là thành công.
 			$tingee_code = '00';
 			$api_message = '';
 			$api_data    = $parsed_body;
-		} else {
-			// Kiểu B: object có field code/message/data.
-			$tingee_code = isset( $parsed_body['code'] ) ? (string) $parsed_body['code'] : '';
+		} elseif ( isset( $parsed_body['code'] ) ) {
+			// Kiểu B: object có code field — kiểm tra code == "00".
+			$tingee_code = (string) $parsed_body['code'];
 			$api_message = isset( $parsed_body['message'] ) ? sanitize_text_field( $parsed_body['message'] ) : '';
 			$api_data    = isset( $parsed_body['data'] ) ? $parsed_body['data'] : array();
+		} else {
+			// Kiểu C: object không có code — HTTP 2xx là thành công.
+			$tingee_code = ( $http_code >= 200 && $http_code < 300 ) ? '00' : '';
+			$api_message = isset( $parsed_body['message'] ) ? sanitize_text_field( $parsed_body['message'] ) : '';
+			$api_data    = isset( $parsed_body['data'] ) ? $parsed_body['data'] : $parsed_body;
 		}
 
 		// Thành công khi: HTTP 2xx VÀ Tingee code là "00".
