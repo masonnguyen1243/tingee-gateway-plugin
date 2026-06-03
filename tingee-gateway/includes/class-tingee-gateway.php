@@ -266,6 +266,26 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'placeholder' => 'VD: 970422',
 			),
 
+			// ================================================================
+			// NHÓM 3 — Webhook IPN
+			// ================================================================
+
+			'webhook_section' => array(
+				'title' => __( 'Webhook IPN', 'tingee-gateway' ),
+				'type'  => 'title',
+				'description' => __( 'Tingee sẽ gửi thông báo thanh toán về URL bên dưới. Hãy copy và điền vào trang Developers của Tingee.', 'tingee-gateway' ),
+			),
+
+			'webhook_url' => array(
+				'title'       => __( 'URL Webhook', 'tingee-gateway' ),
+				'type'        => 'webhook_url_display',
+				'description' => '',
+			),
+
+			// ================================================================
+			// NHÓM 4 — Tên ngân hàng & hiển thị
+			// ================================================================
+
 			'bank_name_display' => array(
 				'title'   => __( 'Hiển thị tên ngân hàng', 'tingee-gateway' ),
 				'type'    => 'select',
@@ -343,6 +363,35 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				</button>
 				<span id="tingee-connection-result" style="display:none; margin-left:10px; padding:5px 10px; border-radius:3px;"></span>
 				<p class="description"><?php echo esc_html( $data['description'] ); ?></p>
+			</td>
+		</tr>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render HTML field hiển thị URL Webhook — read-only, dễ copy.
+	 * WooCommerce gọi generate_{type}_html() với type = 'webhook_url_display'.
+	 *
+	 * @param string $key  Tên field (không dùng).
+	 * @param array  $data Dữ liệu field (không dùng).
+	 * @return string HTML.
+	 */
+	public function generate_webhook_url_display_html( $key, $data ) {
+		$webhook_url = class_exists( 'Tingee_Webhook' ) ? Tingee_Webhook::get_webhook_url() : rest_url( 'tingee-gateway/v1/webhook' );
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<?php esc_html_e( 'URL Webhook', 'tingee-gateway' ); ?>
+			</th>
+			<td class="forminp">
+				<code style="display:inline-block; padding:6px 10px; background:#f6f7f7; border:1px solid #dcdcde; border-radius:3px; word-break:break-all; font-size:13px; user-select:all;">
+					<?php echo esc_url( $webhook_url ); ?>
+				</code>
+				<p class="description">
+					<?php esc_html_e( 'Copy URL này, vào trang Developers của Tingee → cấu hình Webhook → dán vào ô "Webhook URL".', 'tingee-gateway' ); ?>
+				</p>
 			</td>
 		</tr>
 		<?php

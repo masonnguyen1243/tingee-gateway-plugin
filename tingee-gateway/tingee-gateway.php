@@ -131,6 +131,9 @@ function tingee_load_classes() {
 
 	// Đăng ký payment gateway vào WooCommerce.
 	add_filter( 'woocommerce_payment_gateways', 'tingee_register_gateway' );
+
+	// Khởi tạo webhook handler — đăng ký REST endpoint ngay khi plugin load.
+	new Tingee_Webhook();
 }
 
 /**

@@ -27,6 +27,32 @@
 
 -->
 
+### 2026-06-03 — [Task T5.1–T5.6] Webhook IPN — toàn bộ Giai đoạn 5
+- **Loại**: [Tính năng mới] [Bảo mật]
+- **Mô tả**:
+  - **`class-tingee-webhook.php`** — triển khai đầy đủ `Tingee_Webhook`:
+    - **T5.1** — `register_route()`: đăng ký `POST /wp-json/tingee-gateway/v1/webhook` qua `register_rest_route`. `permission_callback = __return_true` vì xác thực bằng chữ ký HMAC, không phải WP auth.
+    - **T5.2** — `handle()`: đọc header `x-request-timestamp` + `x-signature` + raw body; gọi `Tingee_API::verify_webhook_signature()` (đã có từ T2.1). Sai chữ ký → trả **401**, không xử lý gì.
+    - **T5.3** — Parse JSON payload, extract `billId` / `transactionId` / `amount` / `status`. Tìm đơn qua `wc_get_orders(meta_key=_tingee_bill_id)`. Không tìm thấy → trả 200 (không retry).
+    - **T5.4** — Idempotency: kiểm tra `transactionId` trong mảng `_tingee_processed_transactions` (order meta). Đã xử lý → trả 200, bỏ qua.
+    - **T5.5** — Đủ tiền: lưu transactionId vào processed list, ghi note admin, gọi `$order->payment_complete()`. Thiếu tiền: ghi note cảnh báo, giữ On-Hold.
+    - **T5.6** — Mọi webhook hợp lệ đều trả HTTP 200 cuối cùng để Tingee ngừng retry.
+    - `get_webhook_url()` static method trả URL đầy đủ để copy vào Tingee dashboard.
+    - `log()` private: ghi qua `WC_Logger` với source `tingee-webhook`, không log secret.
+  - **`tingee-gateway.php`** — thêm `new Tingee_Webhook()` trong `tingee_load_classes()`.
+  - **`class-tingee-gateway.php`** — thêm section "Webhook IPN" trong settings với field `webhook_url` (read-only, hiển thị URL để copy); thêm `generate_webhook_url_display_html()`.
+- **File thay đổi**: `includes/class-tingee-webhook.php`, `tingee-gateway.php`, `includes/class-tingee-gateway.php`
+- **Trạng thái DoD**: Đạt về code. Cần test với ngrok + Tingee thật.
+- **Lưu ý**: Field names trong payload (`billId`, `transactionId`, `amount`, `status`) dựa trên tài liệu Tingee — xác nhận lại khi test thực tế, cập nhật nếu tên field khác.
+- **Cần Cường test**:
+  1. Vào Settings → copy URL Webhook → điền vào trang Developers của Tingee.
+  2. Dùng ngrok để Tingee gọi được về localhost.
+  3. Đặt đơn, thanh toán → kiểm tra: đơn chuyển Processing, order note có số tiền + mã GD.
+  4. Giả lập webhook sai chữ ký (dùng curl với x-signature sai) → phải nhận **401**.
+  5. Gửi lại webhook y hệt lần 2 → đơn KHÔNG bị gạch nợ 2 lần.
+
+---
+
 ### 2026-06-03 — [Task T4.4] Nút copy + hiển thị tên ngân hàng
 - **Loại**: [Tính năng mới]
 - **Mô tả**:

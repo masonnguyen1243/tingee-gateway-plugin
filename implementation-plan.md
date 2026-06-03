@@ -74,14 +74,14 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 ## GIAI ĐOẠN 5 — Webhook IPN (quan trọng nhất)
 
-- [ ] **T5.1** 🔴 `class-tingee-webhook.php`: đăng ký endpoint nhận POST (REST route hoặc `woocommerce_api_tingee`).
-- [ ] **T5.2** 🔴 Verify chữ ký `x-signature` = HMAC-SHA512(`timestamp:body`, secret). Sai → trả **401**, dừng.
+- [x] **T5.1** 🔴 `class-tingee-webhook.php`: đăng ký endpoint nhận POST (REST route hoặc `woocommerce_api_tingee`).
+- [x] **T5.2** 🔴 Verify chữ ký `x-signature` = HMAC-SHA512(`timestamp:body`, secret). Sai → trả **401**, dừng.
   - **DoD**: Gửi payload sai chữ ký → 401, đơn không đổi (acceptance bảo mật).
-- [ ] **T5.3** 🔴 Parse payload, lấy mã định danh → tìm order tương ứng.
-- [ ] **T5.4** 🔴 **Idempotency**: kiểm tra transaction id đã xử lý chưa (lưu danh sách id đã xử lý vào order meta). Đã xử lý → trả 200, bỏ qua.
+- [x] **T5.3** 🔴 Parse payload, lấy mã định danh → tìm order tương ứng.
+- [x] **T5.4** 🔴 **Idempotency**: kiểm tra transaction id đã xử lý chưa (lưu danh sách id đã xử lý vào order meta). Đã xử lý → trả 200, bỏ qua.
   - **DoD**: Gửi webhook 2 lần → chỉ gạch nợ 1 lần.
-- [ ] **T5.5** 🔴 Đối soát số tiền: đủ → gọi `$order->payment_complete()` + đổi trạng thái theo cấu hình + ghi note admin (số tiền, thời gian). Thiếu → xử lý thanh toán một phần / giữ On-Hold.
-- [ ] **T5.6** 🔴 Luôn trả HTTP 200 cho webhook hợp lệ đã xử lý (để Tingee ngừng retry).
+- [x] **T5.5** 🔴 Đối soát số tiền: đủ → gọi `$order->payment_complete()` + đổi trạng thái theo cấu hình + ghi note admin (số tiền, thời gian). Thiếu → xử lý thanh toán một phần / giữ On-Hold.
+- [x] **T5.6** 🔴 Luôn trả HTTP 200 cho webhook hợp lệ đã xử lý (để Tingee ngừng retry).
 
 ---
 
@@ -121,5 +121,6 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 ---
 
 ## Thứ tự ưu tiên build (đường tới bản chạy được sớm nhất - MVP)
+
 GĐ0 → GĐ1 → GĐ2 → GĐ3 → GĐ4 → GĐ5 → GĐ7 (Blocks) → GĐ9.
 Chế độ B (GĐ6), log/i18n (GĐ8) có thể làm sau bản MVP đầu tiên.
