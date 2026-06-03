@@ -5,7 +5,7 @@
  * Chịu trách nhiệm:
  * - Sinh timestamp đúng định dạng yyyyMMddHHmmssSSS (UTC+7).
  * - Sinh chữ ký HMAC-SHA512 cho mọi request gửi đến Tingee.
- * - Gửi HTTP request đến API Tingee qua wp_remote_post.
+ * - Gửi HTTP request đến API Tingee qua wp_remote_get / wp_remote_post.
  * - Parse và trả về kết quả, xử lý lỗi mạng.
  *
  * @package Tingee_Gateway
@@ -21,17 +21,28 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Tingee_API
  *
  * Mọi giao tiếp với hệ thống Tingee đều đi qua class này.
- * Các lớp khác (Gateway, Webhook) KHÔNG gọi wp_remote_post trực tiếp.
+ * Các lớp khác (Gateway, Webhook) KHÔNG gọi wp_remote_post/get trực tiếp.
  */
 class Tingee_API {
 
 	/**
-	 * Base URL của Tingee API.
-	 * Không có dấu slash ở cuối.
+	 * Base URL môi trường PRODUCTION.
 	 *
 	 * @var string
 	 */
-	const BASE_URL = 'https://api.tingee.vn';
+	const BASE_URL_PROD = 'https://open-api.tingee.vn';
+
+	/**
+	 * Base URL môi trường UAT (giả lập / sandbox).
+	 * Dùng để test mà không ảnh hưởng dữ liệu thật.
+	 *
+	 * @var string
+	 */
+	const BASE_URL_UAT = 'https://uat-open-api.tingee.vn';
+
+	// -------------------------------------------------------------------------
+	// PHẦN 1: Sinh chữ ký & timestamp
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Sinh chữ ký HMAC-SHA512 cho một request gửi lên Tingee.
@@ -40,16 +51,14 @@ class Tingee_API {
 	 *   signature = HMAC_SHA512( timestamp + ":" + requestBody, secretToken )
 	 *
 	 * Trong đó:
-	 *   - $timestamp : chuỗi yyyyMMddHHmmssSSS (UTC+7) — lấy từ tingee_generate_timestamp().
+	 *   - $timestamp : chuỗi yyyyMMddHHmmssSSS (UTC+7).
 	 *   - $body      : JSON minified của payload (KHÔNG được format lại — sẽ làm sai chữ ký).
 	 *   - $secret    : Secret Token lấy từ trang Developers của Tingee.
-	 *
-	 * Hàm trả về chuỗi hex lowercase — đúng với giá trị header x-signature Tingee mong đợi.
 	 *
 	 * @param string $timestamp Timestamp định dạng yyyyMMddHHmmssSSS.
 	 * @param string $body      JSON body của request (đã minify, chưa encode thêm).
 	 * @param string $secret    Secret Token của merchant.
-	 * @return string           Chữ ký HMAC-SHA512 dạng hex.
+	 * @return string           Chữ ký HMAC-SHA512 dạng hex lowercase (128 ký tự).
 	 */
 	public static function generate_signature( $timestamp, $body, $secret ) {
 		// Dữ liệu ký = timestamp + ":" + body — theo đúng tài liệu Tingee.
@@ -63,83 +72,112 @@ class Tingee_API {
 	 * Tạo timestamp theo định dạng yyyyMMddHHmmssSSS múi giờ UTC+7.
 	 *
 	 * Tingee yêu cầu:
-	 *   - Định dạng: yyyyMMddHHmmssSSS (năm 4 số, tháng, ngày, giờ, phút, giây, mili-giây 3 số).
-	 *   - Múi giờ: UTC+7 (Asia/Bangkok / Asia/Ho_Chi_Minh).
+	 *   - Định dạng: yyyyMMddHHmmssSSS (17 ký tự, toàn số).
+	 *   - Múi giờ: UTC+7 (Asia/Ho_Chi_Minh).
 	 *   - Timestamp không được cũ quá 10 phút so với thời điểm nhận trên server Tingee.
 	 *
-	 * @return string Timestamp dạng yyyyMMddHHmmssSSS.
+	 * Lưu ý kỹ thuật: dùng microtime(true) làm nguồn DUY NHẤT cho cả giây lẫn mili-giây
+	 * để tránh race condition khi gọi DateTime() và microtime() tách biệt.
+	 *
+	 * @return string Timestamp dạng yyyyMMddHHmmssSSS (17 ký tự).
 	 */
 	public static function generate_timestamp() {
-		// Tạo DateTimeZone cho UTC+7.
-		$tz = new DateTimeZone( 'Asia/Ho_Chi_Minh' ); // UTC+7, tương đương Asia/Bangkok.
+		$tz = new DateTimeZone( 'Asia/Ho_Chi_Minh' ); // UTC+7.
 
-		// Dùng DateTime::createFromFormat với 'U.u' (Unix timestamp + microseconds) làm nguồn
-		// DUY NHẤT cho cả phần giây lẫn mili-giây — tránh lệch giữa hai lần gọi hàm thời gian.
-		// microtime(true) trả về float: phần nguyên = giây Unix, phần thập phân = micro-giây.
+		// DateTime::createFromFormat('U.u') nhận Unix timestamp với micro-giây —
+		// đây là nguồn duy nhất cho cả phần giây lẫn mili-giây.
 		$now = DateTime::createFromFormat( 'U.u', sprintf( '%.6F', microtime( true ) ) );
 		$now->setTimezone( $tz );
 
-		// Lấy mili-giây từ chính đối tượng DateTime (3 chữ số đầu của microsecond).
-		// DateTime::format('u') = 6-digit microsecond → lấy 3 chữ số đầu = mili-giây.
+		// format('u') = 6-digit microsecond → 3 ký tự đầu = mili-giây.
 		$milliseconds = substr( $now->format( 'u' ), 0, 3 );
 
-		// Ghép định dạng: yyyyMMddHHmmss + mili-giây (17 ký tự tổng).
+		// Kết quả: yyyyMMddHHmmss + SSS = 17 ký tự.
 		return $now->format( 'YmdHis' ) . $milliseconds;
 	}
 
+	// -------------------------------------------------------------------------
+	// PHẦN 2: Gửi HTTP request
+	// -------------------------------------------------------------------------
+
 	/**
-	 * Gửi request đến Tingee API.
+	 * Lấy Base URL theo môi trường đang cấu hình (UAT hoặc PROD).
+	 *
+	 * @return string Base URL không có dấu slash cuối.
+	 */
+	public static function get_base_url() {
+		$settings    = get_option( 'woocommerce_tingee_gateway_settings', array() );
+		$environment = isset( $settings['environment'] ) ? $settings['environment'] : 'production';
+
+		return ( 'sandbox' === $environment ) ? self::BASE_URL_UAT : self::BASE_URL_PROD;
+	}
+
+	/**
+	 * Gửi request đến Tingee API (hỗ trợ cả GET và POST).
 	 *
 	 * Hàm tự động:
 	 *   1. Lấy Client ID và Secret Token từ settings của plugin.
 	 *   2. Sinh timestamp mới.
 	 *   3. JSON-encode $body thành chuỗi minified.
 	 *   4. Sinh chữ ký HMAC-SHA512.
-	 *   5. Gửi POST request kèm đủ headers Tingee yêu cầu.
-	 *   6. Parse JSON response và trả về mảng PHP.
+	 *   5. Gửi request kèm đủ headers Tingee yêu cầu.
+	 *   6. Parse JSON response và trả về mảng PHP chuẩn hóa.
 	 *
-	 * @param string $endpoint  Đường dẫn API, ví dụ '/v1/get-banks'. Có dấu slash đầu.
-	 * @param array  $body      Mảng PHP sẽ được JSON-encode. Truyền [] nếu không có body.
+	 * Lưu ý quan trọng về GET:
+	 *   Ngay cả khi method là GET (không có body thực sự), Tingee vẫn yêu cầu
+	 *   ký chữ ký với body = "{}" (object JSON rỗng). Hàm này xử lý tự động.
+	 *
+	 * @param string $endpoint  Đường dẫn API, ví dụ '/v1/get-banks'. Phải có dấu slash đầu.
+	 * @param array  $body      Mảng PHP sẽ được JSON-encode làm body. Truyền [] nếu không có body.
+	 * @param string $method    HTTP method: 'GET' hoặc 'POST'. Mặc định 'POST'.
+	 * @param string $client_id     (tuỳ chọn) Client ID ghi đè settings. Dùng cho nút "Test kết nối".
+	 * @param string $secret_token  (tuỳ chọn) Secret Token ghi đè settings. Dùng cho nút "Test kết nối".
 	 * @return array {
-	 *     @type bool   $success  true nếu request thành công và code HTTP 2xx.
-	 *     @type array  $data     Dữ liệu response (đã parse JSON). Rỗng nếu lỗi.
-	 *     @type string $message  Thông báo lỗi (nếu có).
-	 *     @type int    $code     HTTP status code.
+	 *     @type bool   $success      true nếu HTTP 2xx và code Tingee là "00".
+	 *     @type array  $data         Dữ liệu từ field 'data' trong response (đã parse JSON).
+	 *     @type string $tingee_code  Mã kết quả Tingee (vd "00", "97"). Rỗng nếu lỗi mạng.
+	 *     @type string $message      Thông báo lỗi hoặc mô tả (nếu có).
+	 *     @type int    $http_code    HTTP status code (0 nếu lỗi mạng).
 	 * }
 	 */
-	public static function request( $endpoint, $body = array() ) {
-		// --- Lấy credentials từ settings của plugin ---
-		$gateway_settings = get_option( 'woocommerce_tingee_gateway_settings', array() );
-		$client_id        = isset( $gateway_settings['client_id'] ) ? sanitize_text_field( $gateway_settings['client_id'] ) : '';
-		$secret_token     = isset( $gateway_settings['secret_token'] ) ? $gateway_settings['secret_token'] : '';
+	public static function request( $endpoint, $body = array(), $method = 'POST', $client_id = '', $secret_token = '' ) {
+		// --- Lấy credentials: ưu tiên tham số truyền vào (dùng cho test), fallback về settings ---
+		if ( empty( $client_id ) || empty( $secret_token ) ) {
+			$settings     = get_option( 'woocommerce_tingee_gateway_settings', array() );
+			$client_id    = isset( $settings['client_id'] ) ? sanitize_text_field( $settings['client_id'] ) : '';
+			$secret_token = isset( $settings['secret_token'] ) ? $settings['secret_token'] : '';
+		}
 
 		if ( empty( $client_id ) || empty( $secret_token ) ) {
 			return array(
-				'success' => false,
-				'data'    => array(),
-				'message' => __( 'Client ID hoặc Secret Token chưa được cấu hình.', 'tingee-gateway' ),
-				'code'    => 0,
+				'success'      => false,
+				'data'         => array(),
+				'tingee_code'  => '',
+				'message'      => __( 'Client ID hoặc Secret Token chưa được cấu hình.', 'tingee-gateway' ),
+				'http_code'    => 0,
 			);
 		}
 
-		// --- Sinh timestamp và JSON body ---
+		// --- Sinh timestamp ---
 		$timestamp = self::generate_timestamp();
 
-		// JSON minified — KHÔNG dùng JSON_PRETTY_PRINT vì sẽ làm sai chữ ký.
-		$json_body = wp_json_encode( $body );
+		// --- JSON-encode body (minified — KHÔNG dùng JSON_PRETTY_PRINT) ---
+		// Với GET request, body logic là {} nhưng vẫn cần ký chữ ký với "{}".
+		$json_body = wp_json_encode( empty( $body ) ? new stdClass() : $body );
 		if ( false === $json_body ) {
 			return array(
-				'success' => false,
-				'data'    => array(),
-				'message' => __( 'Không thể encode body thành JSON.', 'tingee-gateway' ),
-				'code'    => 0,
+				'success'      => false,
+				'data'         => array(),
+				'tingee_code'  => '',
+				'message'      => __( 'Không thể encode body thành JSON.', 'tingee-gateway' ),
+				'http_code'    => 0,
 			);
 		}
 
 		// --- Sinh chữ ký ---
 		$signature = self::generate_signature( $timestamp, $json_body, $secret_token );
 
-		// --- Chuẩn bị headers ---
+		// --- Chuẩn bị headers dùng chung cho cả GET và POST ---
 		$headers = array(
 			'Content-Type'        => 'application/json',
 			'x-client-id'         => $client_id,
@@ -147,77 +185,132 @@ class Tingee_API {
 			'x-signature'         => $signature,
 		);
 
-		// --- Gửi request qua WordPress HTTP API ---
-		$url      = self::BASE_URL . $endpoint;
-		$response = wp_remote_post(
-			$url,
-			array(
-				'headers' => $headers,
-				'body'    => $json_body,
-				'timeout' => 30, // Giây — đủ cho mạng chậm, không block PHP quá lâu.
-			)
+		// --- Gửi request ---
+		$url          = self::get_base_url() . $endpoint;
+		$wp_http_args = array(
+			'headers' => $headers,
+			'timeout' => 30,
 		);
+
+		if ( 'GET' === strtoupper( $method ) ) {
+			// GET: không gửi body thực sự trong HTTP, chỉ dùng body để ký chữ ký.
+			$response = wp_remote_get( $url, $wp_http_args );
+		} else {
+			// POST: gửi JSON body.
+			$wp_http_args['body'] = $json_body;
+			$response             = wp_remote_post( $url, $wp_http_args );
+		}
 
 		// --- Xử lý lỗi mạng (WP_Error) ---
 		if ( is_wp_error( $response ) ) {
-			// Log lỗi mạng (không log secret).
-			if ( class_exists( 'WC_Logger' ) ) {
-				$logger = wc_get_logger();
-				$logger->error(
-					sprintf(
-						// translators: 1: endpoint, 2: error message.
-						__( 'Tingee API lỗi mạng khi gọi %1$s: %2$s', 'tingee-gateway' ),
-						esc_html( $endpoint ),
-						esc_html( $response->get_error_message() )
-					),
-					array( 'source' => 'tingee-gateway' )
-				);
-			}
+			self::log_error(
+				sprintf(
+					/* translators: 1: HTTP method, 2: endpoint, 3: error message */
+					__( 'Tingee API lỗi mạng [%1$s %2$s]: %3$s', 'tingee-gateway' ),
+					strtoupper( $method ),
+					$endpoint,
+					$response->get_error_message()
+				)
+			);
 
 			return array(
-				'success' => false,
-				'data'    => array(),
-				'message' => $response->get_error_message(),
-				'code'    => 0,
+				'success'      => false,
+				'data'         => array(),
+				'tingee_code'  => '',
+				'message'      => $response->get_error_message(),
+				'http_code'    => 0,
 			);
 		}
 
 		// --- Parse HTTP response ---
-		$http_code   = wp_remote_retrieve_response_code( $response );
+		$http_code   = (int) wp_remote_retrieve_response_code( $response );
 		$body_raw    = wp_remote_retrieve_body( $response );
 		$parsed_body = json_decode( $body_raw, true );
 
-		// Nếu JSON parse thất bại, trả body thô trong message.
+		// JSON parse thất bại.
 		if ( null === $parsed_body ) {
 			return array(
-				'success' => false,
-				'data'    => array(),
-				'message' => sprintf(
-					// translators: 1: HTTP code, 2: raw response body.
+				'success'      => false,
+				'data'         => array(),
+				'tingee_code'  => '',
+				'message'      => sprintf(
+					/* translators: 1: HTTP code, 2: raw body (truncated) */
 					__( 'Phản hồi không phải JSON hợp lệ (HTTP %1$d): %2$s', 'tingee-gateway' ),
-					(int) $http_code,
-					esc_html( substr( $body_raw, 0, 200 ) ) // Giới hạn 200 ký tự để tránh log quá dài.
+					$http_code,
+					esc_html( substr( $body_raw, 0, 300 ) )
 				),
-				'code'    => (int) $http_code,
+				'http_code'    => $http_code,
 			);
 		}
 
-		// HTTP 2xx = thành công.
-		$success = ( $http_code >= 200 && $http_code < 300 );
+		// --- Chuẩn hóa kết quả ---
+		// Tingee có 2 kiểu response:
+		//   Kiểu A (endpoint danh sách): trả thẳng array JSON — [ {...}, {...} ]
+		//   Kiểu B (endpoint action): bọc trong object — { "code": "00", "message": "...", "data": {...} }
+		// Phân biệt bằng cách kiểm tra $parsed_body có phải array tuần tự (list) không.
+		$is_list = isset( $parsed_body[0] ) || ( is_array( $parsed_body ) && array_values( $parsed_body ) === $parsed_body && ! isset( $parsed_body['code'] ) );
 
-		// Lấy message từ response nếu có (Tingee thường trả field 'message' khi lỗi).
-		$api_message = '';
+		if ( $is_list ) {
+			// Kiểu A: array thẳng — HTTP 2xx là đủ để coi là thành công.
+			$tingee_code = '00';
+			$api_message = '';
+			$api_data    = $parsed_body;
+		} else {
+			// Kiểu B: object có field code/message/data.
+			$tingee_code = isset( $parsed_body['code'] ) ? (string) $parsed_body['code'] : '';
+			$api_message = isset( $parsed_body['message'] ) ? sanitize_text_field( $parsed_body['message'] ) : '';
+			$api_data    = isset( $parsed_body['data'] ) ? $parsed_body['data'] : array();
+		}
+
+		// Thành công khi: HTTP 2xx VÀ Tingee code là "00".
+		$success = ( $http_code >= 200 && $http_code < 300 ) && ( '00' === $tingee_code );
+
 		if ( ! $success ) {
-			$api_message = isset( $parsed_body['message'] ) ? sanitize_text_field( $parsed_body['message'] ) : __( 'Lỗi không xác định từ Tingee API.', 'tingee-gateway' );
+			self::log_error(
+				sprintf(
+					/* translators: 1: endpoint, 2: HTTP code, 3: Tingee code, 4: message */
+					__( 'Tingee API lỗi [%1$s] HTTP=%2$d code=%3$s: %4$s', 'tingee-gateway' ),
+					$endpoint,
+					$http_code,
+					$tingee_code,
+					$api_message
+				)
+			);
 		}
 
 		return array(
-			'success' => $success,
-			'data'    => $parsed_body,
-			'message' => $api_message,
-			'code'    => (int) $http_code,
+			'success'      => $success,
+			'data'         => $api_data,
+			'tingee_code'  => $tingee_code,
+			'message'      => $api_message,
+			'http_code'    => $http_code,
 		);
 	}
+
+	// -------------------------------------------------------------------------
+	// PHẦN 3: Các endpoint cụ thể
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Lấy danh sách ngân hàng Tingee hỗ trợ.
+	 *
+	 * Endpoint: GET /v1/get-banks
+	 * Dùng để: hiển thị danh sách NH cho admin chọn tài khoản nhận tiền,
+	 * và dùng làm endpoint "kiểm tra kết nối" vì không cần body phức tạp.
+	 *
+	 * Response data mỗi item: { code, name, bin, shortName, urlLogo }
+	 *
+	 * @param string $client_id    (tuỳ chọn) Ghi đè Client ID từ settings.
+	 * @param string $secret_token (tuỳ chọn) Ghi đè Secret Token từ settings.
+	 * @return array Kết quả chuẩn hóa từ self::request().
+	 */
+	public static function get_banks( $client_id = '', $secret_token = '' ) {
+		return self::request( '/v1/get-banks', array(), 'GET', $client_id, $secret_token );
+	}
+
+	// -------------------------------------------------------------------------
+	// PHẦN 4: Xác minh webhook
+	// -------------------------------------------------------------------------
 
 	/**
 	 * Xác minh chữ ký webhook gửi về từ Tingee.
@@ -226,19 +319,32 @@ class Tingee_API {
 	 *   HMAC_SHA512( requestTimestamp + ':' + rawBody, secretToken )
 	 * rồi gửi kết quả trong header x-signature.
 	 *
-	 * Hàm dùng hash_equals() để so sánh — tránh timing attack.
+	 * Dùng hash_equals() để so sánh — tránh timing attack.
 	 *
-	 * @param string $received_signature Chữ ký lấy từ header x-signature của request.
+	 * @param string $received_signature Chữ ký từ header x-signature.
 	 * @param string $timestamp          Giá trị header x-request-timestamp.
-	 * @param string $raw_body           Body thô của webhook (CHƯA json_decode — phải giữ nguyên byte).
+	 * @param string $raw_body           Body thô (CHƯA json_decode — giữ nguyên byte).
 	 * @param string $secret             Secret Token của merchant.
-	 * @return bool true nếu chữ ký hợp lệ, false nếu không khớp.
+	 * @return bool true nếu hợp lệ.
 	 */
 	public static function verify_webhook_signature( $received_signature, $timestamp, $raw_body, $secret ) {
-		// Tính chữ ký kỳ vọng theo công thức Tingee.
-		$expected_signature = self::generate_signature( $timestamp, $raw_body, $secret );
+		$expected = self::generate_signature( $timestamp, $raw_body, $secret );
+		return hash_equals( $expected, $received_signature );
+	}
 
-		// hash_equals tránh timing attack khi so sánh chuỗi bí mật.
-		return hash_equals( $expected_signature, $received_signature );
+	// -------------------------------------------------------------------------
+	// PHẦN 5: Tiện ích nội bộ
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Ghi log lỗi vào WooCommerce Logger (nếu có).
+	 * Không bao giờ log secret token.
+	 *
+	 * @param string $message Nội dung log.
+	 */
+	private static function log_error( $message ) {
+		if ( function_exists( 'wc_get_logger' ) ) {
+			wc_get_logger()->error( $message, array( 'source' => 'tingee-gateway' ) );
+		}
 	}
 }

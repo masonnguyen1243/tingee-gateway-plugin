@@ -145,7 +145,74 @@ function tingee_register_gateway( $gateways ) {
 }
 
 // ---------------------------------------------------------------------------
-// 5. Nạp file dịch
+// 5. AJAX handler: nút "Kiểm tra kết nối" ở trang Settings
+// ---------------------------------------------------------------------------
+
+/**
+ * Đăng ký AJAX action cho nút "Kiểm tra kết nối" trong wp-admin.
+ * Chỉ cho phép người dùng đã đăng nhập (wp_ajax_) — không có phiên bản nopriv.
+ */
+add_action( 'wp_ajax_tingee_test_connection', 'tingee_ajax_test_connection' );
+
+/**
+ * Xử lý AJAX request kiểm tra kết nối đến Tingee API.
+ *
+ * Nhận Client ID và Secret Token từ form (chưa lưu vào DB),
+ * gọi GET /v1/get-banks để xác nhận credentials hợp lệ.
+ * Trả về JSON { success, message }.
+ */
+function tingee_ajax_test_connection() {
+	// Xác thực nonce — bảo vệ khỏi CSRF.
+	check_ajax_referer( 'tingee_test_connection_nonce', 'nonce' );
+
+	// Chỉ admin mới được phép.
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Bạn không có quyền thực hiện thao tác này.', 'tingee-gateway' ) ) );
+	}
+
+	// Lấy và sanitize credentials từ form.
+	$client_id    = isset( $_POST['client_id'] ) ? sanitize_text_field( wp_unslash( $_POST['client_id'] ) ) : '';
+	$secret_token = isset( $_POST['secret_token'] ) ? sanitize_text_field( wp_unslash( $_POST['secret_token'] ) ) : '';
+
+	if ( empty( $client_id ) || empty( $secret_token ) ) {
+		wp_send_json_error( array( 'message' => __( 'Vui lòng nhập đầy đủ Client ID và Secret Token trước khi kiểm tra.', 'tingee-gateway' ) ) );
+	}
+
+	// Gọi API /v1/get-banks với credentials từ form (không dùng credentials đã lưu).
+	$result = Tingee_API::get_banks( $client_id, $secret_token );
+
+	if ( $result['success'] ) {
+		$bank_count = is_array( $result['data'] ) ? count( $result['data'] ) : 0;
+		wp_send_json_success(
+			array(
+				'message' => sprintf(
+					/* translators: %d: số lượng ngân hàng */
+					__( 'Kết nối thành công! Tingee hỗ trợ %d ngân hàng.', 'tingee-gateway' ),
+					$bank_count
+				),
+			)
+		);
+	} else {
+		// Phân loại lỗi theo mã Tingee để hiện thông báo rõ hơn.
+		$error_hints = array(
+			'97' => __( 'Sai chữ ký — kiểm tra lại Secret Token.', 'tingee-gateway' ),
+			'90' => __( 'Sai định dạng timestamp — lỗi server. Vui lòng thử lại.', 'tingee-gateway' ),
+			'91' => __( 'Request quá hạn — kiểm tra đồng hồ hệ thống server của bạn.', 'tingee-gateway' ),
+		);
+
+		$hint = isset( $error_hints[ $result['tingee_code'] ] ) ? $error_hints[ $result['tingee_code'] ] : '';
+		$msg  = $result['message'] ? $result['message'] : __( 'Kết nối thất bại.', 'tingee-gateway' );
+
+		if ( $hint ) {
+			$msg .= ' — ' . $hint;
+		}
+
+		wp_send_json_error( array( 'message' => $msg ) );
+	}
+}
+
+// ---------------------------------------------------------------------------
+// 6. Nạp file dịch
 // ---------------------------------------------------------------------------
 add_action( 'init', 'tingee_load_textdomain' );
 

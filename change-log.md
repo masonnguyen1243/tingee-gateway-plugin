@@ -25,6 +25,29 @@
 
 -->
 
+### 2026-06-03 — [Fix] Parse response Tingee — hỗ trợ array thẳng
+- **Loại**: [Fix lỗi]
+- **Mô tả**: Tingee trả về array JSON thẳng `[{...},{...}]` thay vì `{"code":"00","data":[...]}` như docs mẫu. Fix logic parse trong `request()` để nhận diện cả 2 kiểu response: array thẳng (list) → coi là thành công ngay khi HTTP 2xx; object có field `code` → kiểm tra `code == "00"` như cũ.
+- **File thay đổi**: `includes/class-tingee-api.php`
+- **Trạng thái**: Đã test thực tế — nút "Kiểm tra kết nối" hiện "Kết nối thành công! Tingee hỗ trợ 14 ngân hàng."
+
+---
+
+### 2026-06-03 — [Task T2.3] Hàm request() hoàn chỉnh + get_banks() + nút Kiểm tra kết nối
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **`Tingee_API::request()`** — nâng cấp hỗ trợ cả GET và POST; thêm tham số `$client_id`/`$secret_token` để override credentials (dùng khi test từ form chưa lưu); chuẩn hóa output thêm field `tingee_code` (mã "00" = thành công); thêm UAT/PROD URL tự động theo field `environment`.
+  - **`Tingee_API::get_banks()`** — wrapper gọi `GET /v1/get-banks`, dùng làm endpoint kiểm tra kết nối.
+  - **`Tingee_API::get_base_url()`** — đọc `environment` từ settings, trả về URL UAT hoặc PROD tương ứng.
+  - **`class-tingee-gateway.php`** — thêm field `environment` (Sandbox/Production), `client_id`, `secret_token`, nút "Kiểm tra kết nối" (custom HTML field); enqueue `admin.js` chỉ trên trang Settings của gateway.
+  - **`assets/js/admin.js`** — JS xử lý click nút test: lấy credentials từ form, gọi AJAX, hiện kết quả inline.
+  - **`tingee-gateway.php`** — thêm AJAX handler `tingee_test_connection` với nonce check + capability check.
+- **File thay đổi**: `includes/class-tingee-api.php`, `includes/class-tingee-gateway.php`, `tingee-gateway.php`, `assets/js/admin.js` (mới)
+- **Trạng thái DoD**: Đạt về code. Cần Cường test thực tế với credentials thật.
+- **Cần Cường test**: Vào WooCommerce → Settings → Payments → Tingee Gateway → nhập Client ID + Secret Token (môi trường Sandbox) → bấm "Kiểm tra kết nối" → phải thấy "Kết nối thành công! Tingee hỗ trợ X ngân hàng."
+
+---
+
 ### 2026-06-03 — [Task T2.2] Fix generate_timestamp() — yyyyMMddHHmmssSSS UTC+7
 - **Loại**: [Cải thiện] [Fix lỗi]
 - **Mô tả**: Fix edge case trong `generate_timestamp()`: trước đây dùng `new DateTime()` và `microtime(true)` tách biệt có thể bị lệch mili-giây khi CPU tải nặng. Nay dùng `DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)))` làm nguồn duy nhất cho cả phần giây lẫn mili-giây, đảm bảo output luôn nhất quán 17 ký tự. Đã test edge case `usec=007500` → `ms=007` (leading zero đúng).
