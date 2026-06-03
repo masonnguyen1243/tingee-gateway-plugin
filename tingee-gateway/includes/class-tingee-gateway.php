@@ -41,6 +41,27 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	 */
 	public $bank_bin;
 
+	/**
+	 * Tên đầy đủ của ngân hàng — hiển thị trên trang thank-you.
+	 *
+	 * @var string
+	 */
+	public $bank_name_full;
+
+	/**
+	 * Tên viết tắt của ngân hàng — hiển thị trên trang thank-you.
+	 *
+	 * @var string
+	 */
+	public $bank_name_short;
+
+	/**
+	 * Chế độ hiển thị tên NH: 'both' | 'full' | 'short' | 'none'.
+	 *
+	 * @var string
+	 */
+	public $bank_name_display;
+
 /**
 	 * Khởi tạo gateway — thiết lập ID, tiêu đề, mô tả, và đọc toàn bộ settings.
 	 */
@@ -81,6 +102,11 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		// BIN code ngân hàng VA.
 		$this->bank_bin = $this->get_option( 'bank_bin', '' );
+
+		// Tên ngân hàng và chế độ hiển thị.
+		$this->bank_name_full    = $this->get_option( 'bank_name_full', '' );
+		$this->bank_name_short   = $this->get_option( 'bank_name_short', '' );
+		$this->bank_name_display = $this->get_option( 'bank_name_display', 'both' );
 
 		// Lưu settings khi admin nhấn nút "Save changes".
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -238,6 +264,38 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'desc_tip'    => false,
 				'default'     => '',
 				'placeholder' => 'VD: 970422',
+			),
+
+			'bank_name_display' => array(
+				'title'   => __( 'Hiển thị tên ngân hàng', 'tingee-gateway' ),
+				'type'    => 'select',
+				'description' => __( 'Cách hiển thị tên ngân hàng trong bảng thông tin chuyển khoản trên trang thank-you.', 'tingee-gateway' ),
+				'desc_tip'    => true,
+				'default' => 'both',
+				'options' => array(
+					'both'  => __( 'Cả tên đầy đủ và viết tắt', 'tingee-gateway' ),
+					'full'  => __( 'Chỉ tên đầy đủ', 'tingee-gateway' ),
+					'short' => __( 'Chỉ tên viết tắt', 'tingee-gateway' ),
+					'none'  => __( 'Không hiển thị', 'tingee-gateway' ),
+				),
+			),
+
+			'bank_name_full' => array(
+				'title'       => __( 'Tên ngân hàng đầy đủ', 'tingee-gateway' ),
+				'type'        => 'text',
+				'description' => __( 'Ví dụ: Ngân hàng TMCP Quân đội', 'tingee-gateway' ),
+				'desc_tip'    => true,
+				'default'     => '',
+				'placeholder' => 'VD: Ngân hàng TMCP Quân đội',
+			),
+
+			'bank_name_short' => array(
+				'title'       => __( 'Tên ngân hàng viết tắt', 'tingee-gateway' ),
+				'type'        => 'text',
+				'description' => __( 'Ví dụ: MB Bank', 'tingee-gateway' ),
+				'desc_tip'    => true,
+				'default'     => '',
+				'placeholder' => 'VD: MB Bank',
 			),
 
 			// Nút kiểm tra kết nối — render bởi generate_test_connection_button_html().
@@ -429,7 +487,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'i18n'    => array(
-					'paid' => __( 'Thanh toán thành công! Đang chuyển hướng...', 'tingee-gateway' ),
+					'paid'   => __( 'Thanh toán thành công! Đang chuyển hướng...', 'tingee-gateway' ),
+					'copied' => __( 'Đã sao chép', 'tingee-gateway' ),
 				),
 			)
 		);
@@ -472,7 +531,26 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		// Format số tiền theo kiểu Việt Nam: 150.000 ₫.
 		$amount_display = number_format( $amount, 0, ',', '.' ) . ' ₫';
 
-		// Nonce để JS poll trạng thái (sẽ dùng ở T4.3).
+		// Tính chuỗi tên ngân hàng theo cài đặt admin.
+		$bank_label = '';
+		switch ( $this->bank_name_display ) {
+			case 'full':
+				$bank_label = $this->bank_name_full;
+				break;
+			case 'short':
+				$bank_label = $this->bank_name_short;
+				break;
+			case 'both':
+				if ( $this->bank_name_full && $this->bank_name_short ) {
+					$bank_label = $this->bank_name_full . ' (' . $this->bank_name_short . ')';
+				} else {
+					$bank_label = $this->bank_name_full . $this->bank_name_short;
+				}
+				break;
+			// 'none': giữ nguyên chuỗi rỗng.
+		}
+
+		// Nonce để JS poll trạng thái (dùng ở T4.3).
 		$status_nonce = wp_create_nonce( 'tingee_check_status_' . $order_id );
 		?>
 		<section class="tingee-payment-box"
@@ -503,6 +581,12 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			<div class="tingee-payment-box__info">
 				<table class="tingee-transfer-info">
 					<tbody>
+						<?php if ( $bank_label ) : ?>
+						<tr>
+							<th><?php esc_html_e( 'Ngân hàng', 'tingee-gateway' ); ?></th>
+							<td><?php echo esc_html( $bank_label ); ?></td>
+						</tr>
+						<?php endif; ?>
 						<tr>
 							<th><?php esc_html_e( 'Số tài khoản', 'tingee-gateway' ); ?></th>
 							<td>

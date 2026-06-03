@@ -68,7 +68,7 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 - [x] **T4.2** 🔴 Hiển thị QR + box thông tin chuyển khoản (số TK, tên, số tiền, nội dung kèm prefix) trên trang nhận đơn / thank-you page.
 - [x] **T4.3** 🔴 JS `assets/js/checkout.js`: poll trạng thái đơn (AJAX, có nonce) mỗi vài giây; khi đã thanh toán → hiện message thành công, dừng poll.
   - **DoD**: Giả lập webhook → trang khách tự đổi sang "thành công" trong ≤15s.
-- [ ] **T4.4** 🟡 Nút copy thông tin chuyển khoản; tùy chọn hiển thị tên NH (đầy đủ/viết tắt/cả hai).
+- [x] **T4.4** 🟡 Nút copy thông tin chuyển khoản; tùy chọn hiển thị tên NH (đầy đủ/viết tắt/cả hai).
 
 ---
 

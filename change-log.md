@@ -27,6 +27,17 @@
 
 -->
 
+### 2026-06-03 — [Task T4.4] Nút copy + hiển thị tên ngân hàng
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **`assets/js/checkout.js`** — thêm `initCopyButtons()`: click vào `.tingee-copy-btn` → đọc text từ phần tử có ID = `data-copy-target` → copy bằng `navigator.clipboard` (hiện đại) hoặc fallback `execCommand('copy')` (trình duyệt cũ) → đổi label nút thành "Đã sao chép" trong 2 giây rồi tự hoàn nguyên.
+  - **`class-tingee-gateway.php`** — thêm 3 settings mới: `bank_name_full` (tên đầy đủ), `bank_name_short` (viết tắt), `bank_name_display` (select: cả hai / chỉ đầy đủ / chỉ viết tắt / không hiển thị). `thankyou_page()` build chuỗi `$bank_label` theo setting và render row "Ngân hàng" trong bảng thông tin (chỉ hiện khi không rỗng). `wp_localize_script` bổ sung `i18n.copied`.
+- **File thay đổi**: `assets/js/checkout.js`, `includes/class-tingee-gateway.php`
+- **Trạng thái DoD**: Đạt — copy hoạt động cả HTTPS lẫn HTTP (fallback), tên NH hiển thị theo setting admin.
+- **Cần Cường test**: (1) Vào Settings → điền "Tên đầy đủ" + "Viết tắt" + chọn chế độ "Cả hai" → Save → trang thank-you hiện "Ngân hàng TMCP Quân đội (MB Bank)". (2) Bấm nút "Sao chép" cạnh số tài khoản → label đổi thành "Đã sao chép" → dán vào nơi khác ra đúng số.
+
+---
+
 ### 2026-06-03 — [Task T4.3] JS poll trạng thái đơn hàng trên trang thank-you
 - **Loại**: [Tính năng mới]
 - **Mô tả**:
