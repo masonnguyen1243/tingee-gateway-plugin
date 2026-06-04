@@ -4,6 +4,26 @@
 
 ---
 
+## [1.0.0] — 2026-06-04 (cập nhật lần 2)
+
+### Bug fixes — QR hiển thị & Webhook nhận
+
+**Bugfix 1** ✅ — Sửa ảnh QR không hiển thị trên trang thank-you
+
+- `includes/class-tingee-gateway.php` — `thankyou_page()`:
+  - **Nguyên nhân**: API `POST /v1/generate-viet-qr` trả về `qrCodeImage` dưới dạng Data URI đầy đủ (`data:image/png;base64,XXX`). Code cũ chỉ phân biệt 2 trường hợp (URL bắt đầu `http` hoặc raw base64), nên đã thêm prefix `data:image/png;base64,` lần thứ hai → double-prefix → trình duyệt không parse được → ảnh hiển thị broken.
+  - **Sửa**: Thêm nhánh thứ ba `elseif ( 0 === strpos( $qr_code, 'data:' ) )` — nếu giá trị đã là Data URI đầy đủ thì dùng trực tiếp qua `esc_attr()`, không thêm prefix.
+  - Logic hiển thị QR sau khi sửa: 3 trường hợp — (1) URL `http...` → `esc_url()`; (2) Data URI `data:...` → `esc_attr()` trực tiếp; (3) Raw base64 → thêm prefix rồi `esc_attr()`.
+
+**Bugfix 2** ✅ — Webhook không nhận được từ Tingee (môi trường local)
+
+- **Không thay đổi code** — đây là vấn đề cấu hình môi trường local:
+  - **Nguyên nhân 1**: WordPress đang bật chế độ "Coming soon" → chặn mọi request từ bên ngoài trước khi đến REST API → Tingee nhận redirect thay vì 200/401. **Sửa**: Tắt "Coming soon", chuyển sang Public.
+  - **Nguyên nhân 2**: LocalWP Live Link bật HTTP Basic Authentication bắt buộc (username/password tự sinh) → server Tingee không có credentials → bị 401 từ tunnel, chưa bao giờ chạm tới WordPress. **Sửa**: Điền credentials vào webhook URL dạng `https://user:pass@rhetorical-hope.localsite.io/wp-json/tingee-gateway/v1/webhook` khi cấu hình Tingee.
+  - **Lưu ý môi trường production**: Khi deploy lên server thật có domain công khai, cả 2 vấn đề trên đều không xuất hiện — chỉ cần điền URL thẳng không cần credentials.
+
+---
+
 ## [1.0.0] — 2026-06-04 (cập nhật)
 
 ### Giai đoạn 7B — Chuyển sang Static QR

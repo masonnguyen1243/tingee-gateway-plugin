@@ -756,13 +756,19 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 			<div class="tingee-payment-box__qr">
 				<?php
-				// QR code có thể là URL hoặc chuỗi base64 PNG.
+				// QR code có thể là: URL (http...), Data URI đầy đủ (data:image/...), hoặc raw base64.
+				// Tingee thường trả về dạng "data:image/png;base64,XXX" — phải dùng trực tiếp.
 				if ( 0 === strpos( $qr_code, 'http' ) ) {
 					echo '<img src="' . esc_url( $qr_code ) . '"'
 						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
 						. ' width="220" height="220" />';
+				} elseif ( 0 === strpos( $qr_code, 'data:' ) ) {
+					// Data URI đầy đủ — dùng trực tiếp, không thêm prefix.
+					echo '<img src="' . esc_attr( $qr_code ) . '"'
+						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
+						. ' width="220" height="220" />';
 				} else {
-					// base64: chỉ chứa [A-Za-z0-9+/=] — esc_attr() an toàn.
+					// Raw base64 thuần — thêm prefix data URI.
 					echo '<img src="data:image/png;base64,' . esc_attr( $qr_code ) . '"'
 						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
 						. ' width="220" height="220" />';
