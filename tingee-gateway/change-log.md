@@ -4,6 +4,30 @@
 
 ---
 
+## [1.0.0] — 2026-06-04 (cập nhật lần 4)
+
+### Giai đoạn 8 — Log, i18n, hoàn thiện (tiếp theo)
+
+**T8.2** ✅ — Tạo file `.pot`, bản dịch Tiếng Việt, bọc mọi chuỗi trong hàm dịch
+
+- `includes/class-tingee-webhook.php`:
+  - Bọc toàn bộ chuỗi truyền vào `$this->log()` trong `__( ..., 'tingee-gateway' )` — bao gồm cả các chuỗi log nội bộ trước đây chưa được wrap.
+  - Cập nhật các `sprintf()` dùng `%s`/`%d` liên tiếp sang placeholder có số thứ tự (`%1$s`, `%2$d`, ...) đúng chuẩn WordPress i18n để dịch giả có thể đổi thứ tự nếu cần.
+  - Thêm comment `/* translators: */` cho mọi chuỗi có placeholder, giải thích ý nghĩa từng vị trí.
+- `languages/tingee-gateway.pot` (file mới):
+  - Template dịch thuật chuẩn PO, sinh tự động bằng `xgettext` từ toàn bộ file PHP trong plugin.
+  - Chứa **106 chuỗi** có thể dịch, kèm comment vị trí file:dòng và gợi ý `translators:`.
+  - Header: Project-Id-Version, Report-Msgid-Bugs-To, Content-Type UTF-8, X-Domain.
+- `languages/tingee-gateway-vi_VN.po` (file mới):
+  - Bản dịch Tiếng Việt chính thức (identity translation — source strings đã là TV).
+  - 106/106 strings được dịch, `msgstr` = `msgid` (không có entry nào bỏ trống).
+  - Header đầy đủ: Language: vi_VN, Plural-Forms: nplurals=1; plural=0.
+- `languages/tingee-gateway-vi_VN.mo` (file mới):
+  - File binary được biên dịch từ `.po` bằng `msgfmt`. WordPress load file này để hiển thị bản dịch.
+  - Kiểm tra: `msgfmt --check-format` báo 0 lỗi, 106 translated messages.
+
+---
+
 ## [1.0.0] — 2026-06-04 (cập nhật lần 3)
 
 ### Giai đoạn 8 — Log, i18n, hoàn thiện

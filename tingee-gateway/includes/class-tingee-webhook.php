@@ -81,7 +81,10 @@ class Tingee_Webhook {
 		$secret_token = isset( $settings['secret_token'] ) ? $settings['secret_token'] : '';
 
 		if ( empty( $secret_token ) ) {
-			$this->log( 'Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → Settings → Payments → Tingee để điền Secret Token.', 'error' );
+			$this->log(
+				__( 'Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → Settings → Payments → Tingee để điền Secret Token.', 'tingee-gateway' ),
+				'error'
+			);
 			return new WP_REST_Response( array( 'error' => 'Gateway not configured.' ), 500 );
 		}
 
@@ -90,7 +93,10 @@ class Tingee_Webhook {
 		$raw_body  = $request->get_body();
 
 		if ( empty( $timestamp ) || empty( $signature ) ) {
-			$this->log( 'Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-signature.', 'error' );
+			$this->log(
+				__( 'Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-signature.', 'tingee-gateway' ),
+				'error'
+			);
 			return new WP_REST_Response( array( 'error' => 'Missing required headers.' ), 401 );
 		}
 
@@ -98,7 +104,8 @@ class Tingee_Webhook {
 			// Log thêm 4 ký tự đầu của signature nhận được để dễ debug (không log secret).
 			$this->log(
 				sprintf(
-					'Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s',
+					/* translators: %s: 4 ký tự đầu của signature nhận được */
+					__( 'Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s', 'tingee-gateway' ),
 					Tingee_API::mask_secret( $signature )
 				),
 				'error'
@@ -108,7 +115,12 @@ class Tingee_Webhook {
 		}
 
 		$this->log(
-			sprintf( 'Webhook hợp lệ nhận được. IP: %s. Timestamp: %s.', $request->get_header( 'x-real-ip' ), $timestamp ),
+			sprintf(
+				/* translators: 1: IP address của server Tingee, 2: timestamp từ header */
+				__( 'Webhook hợp lệ nhận được. IP: %1$s. Timestamp: %2$s.', 'tingee-gateway' ),
+				$request->get_header( 'x-real-ip' ),
+				$timestamp
+			),
 			'info'
 		);
 
@@ -118,7 +130,7 @@ class Tingee_Webhook {
 
 		$payload = json_decode( $raw_body, true );
 		if ( ! is_array( $payload ) ) {
-			$this->log( 'Webhook payload không hợp lệ (không phải JSON object).', 'error' );
+			$this->log( __( 'Webhook payload không hợp lệ (không phải JSON object).', 'tingee-gateway' ), 'error' );
 			return new WP_REST_Response( array( 'error' => 'Invalid payload.' ), 400 );
 		}
 
@@ -171,7 +183,11 @@ class Tingee_Webhook {
 
 			if ( empty( $orders ) ) {
 				$this->log(
-					sprintf( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng.', $bill_id ),
+					sprintf(
+						/* translators: %s: billId từ Tingee */
+						__( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng.', 'tingee-gateway' ),
+						$bill_id
+					),
 					'warning'
 				);
 				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
@@ -183,7 +199,10 @@ class Tingee_Webhook {
 			// Static QR: không có billId → tìm qua nội dung chuyển khoản = mã đơn WC.
 			// Nếu khách sửa nội dung CK thì match sẽ thất bại — cần xử lý thủ công.
 			if ( empty( $transfer_content ) ) {
-				$this->log( 'Webhook thiếu cả billId lẫn content — không thể xác định đơn hàng.', 'warning' );
+				$this->log(
+					__( 'Webhook thiếu cả billId lẫn content — không thể xác định đơn hàng.', 'tingee-gateway' ),
+					'warning'
+				);
 				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Ignored: no identifier.' ), 200 );
 			}
 
@@ -200,7 +219,8 @@ class Tingee_Webhook {
 			if ( empty( $orders ) ) {
 				$this->log(
 					sprintf(
-						'Webhook Static QR: không tìm được đơn on-hold nào với nội dung CK "%s". Khách có thể đã sửa nội dung CK — cần xử lý thủ công.',
+						/* translators: %s: nội dung chuyển khoản */
+						__( 'Webhook Static QR: không tìm được đơn on-hold nào với nội dung CK "%s". Khách có thể đã sửa nội dung CK — cần xử lý thủ công.', 'tingee-gateway' ),
 						$transfer_content
 					),
 					'warning'
@@ -225,7 +245,8 @@ class Tingee_Webhook {
 			if ( in_array( $transaction_code, $processed_ids, true ) ) {
 				$this->log(
 					sprintf(
-						'Webhook Mode A %s transactionCode=%s: đã xử lý trước đó, bỏ qua (idempotency).',
+						/* translators: 1: order identifier (billId=... hoặc content=...), 2: transaction code */
+						__( 'Webhook Mode A %1$s transactionCode=%2$s: đã xử lý trước đó, bỏ qua (idempotency).', 'tingee-gateway' ),
 						$order_identifier,
 						$transaction_code
 					),
@@ -268,7 +289,8 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook Mode A %s transactionCode=%s: thanh toán thành công. Đơn #%d → Processing.',
+					/* translators: 1: order identifier, 2: transaction code, 3: WooCommerce order ID */
+					__( 'Webhook Mode A %1$s transactionCode=%2$s: thanh toán thành công. Đơn #%3$d → Processing.', 'tingee-gateway' ),
 					$order_identifier,
 					! empty( $transaction_code ) ? $transaction_code : 'N/A',
 					$order->get_id()
@@ -291,7 +313,8 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook Mode A %s: THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
+					/* translators: 1: order identifier, 2: received amount, 3: expected amount, 4: WooCommerce order ID */
+					__( 'Webhook Mode A %1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold.', 'tingee-gateway' ),
 					$order_identifier,
 					$received_amount,
 					$expected_amount,
@@ -348,7 +371,11 @@ class Tingee_Webhook {
 
 		if ( empty( $orders ) ) {
 			$this->log(
-				sprintf( 'Webhook Mode B orderId=%s: không tìm thấy đơn hàng.', $tingee_order_id ),
+				sprintf(
+					/* translators: %s: Tingee order ID */
+					__( 'Webhook Mode B orderId=%s: không tìm thấy đơn hàng.', 'tingee-gateway' ),
+					$tingee_order_id
+				),
 				'warning'
 			);
 			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
@@ -364,7 +391,11 @@ class Tingee_Webhook {
 
 			if ( in_array( $webhook_request_id, $processed_webhooks, true ) ) {
 				$this->log(
-					sprintf( 'Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency).', $webhook_request_id ),
+					sprintf(
+						/* translators: %s: webhook request ID */
+						__( 'Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency).', 'tingee-gateway' ),
+						$webhook_request_id
+					),
 					'info'
 				);
 				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Already processed.' ), 200 );
@@ -386,7 +417,13 @@ class Tingee_Webhook {
 			$order->save();
 
 			$this->log(
-				sprintf( 'Webhook Mode B orderId=%s: status=%s, statusCode=%s — không phải success.', $tingee_order_id, $status, $status_code ),
+				sprintf(
+					/* translators: 1: Tingee order ID, 2: status, 3: statusCode */
+					__( 'Webhook Mode B orderId=%1$s: status=%2$s, statusCode=%3$s — không phải success.', 'tingee-gateway' ),
+					$tingee_order_id,
+					$status,
+					$status_code
+				),
 				'info'
 			);
 			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Status noted.' ), 200 );
@@ -421,7 +458,8 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook Mode B orderId=%s: thanh toán thành công. Đơn #%d → Processing.',
+					/* translators: 1: Tingee order ID, 2: WooCommerce order ID */
+					__( 'Webhook Mode B orderId=%1$s: thanh toán thành công. Đơn #%2$d → Processing.', 'tingee-gateway' ),
 					$tingee_order_id,
 					$order->get_id()
 				),
@@ -442,7 +480,8 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook Mode B orderId=%s: THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
+					/* translators: 1: Tingee order ID, 2: received amount, 3: expected amount, 4: WooCommerce order ID */
+					__( 'Webhook Mode B orderId=%1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold.', 'tingee-gateway' ),
 					$tingee_order_id,
 					$received_amount,
 					$expected_amount,
