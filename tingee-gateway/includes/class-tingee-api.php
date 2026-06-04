@@ -203,14 +203,15 @@ class Tingee_API {
 
 		// --- Xử lý lỗi mạng (WP_Error) ---
 		if ( is_wp_error( $response ) ) {
-			self::log_error(
+			self::log(
 				sprintf(
 					/* translators: 1: HTTP method, 2: endpoint, 3: error message */
 					__( 'Tingee API lỗi mạng [%1$s %2$s]: %3$s', 'tingee-gateway' ),
 					strtoupper( $method ),
 					$endpoint,
 					$response->get_error_message()
-				)
+				),
+				'error'
 			);
 
 			return array(
@@ -271,7 +272,7 @@ class Tingee_API {
 		$success = ( $http_code >= 200 && $http_code < 300 ) && ( '00' === $tingee_code );
 
 		if ( ! $success ) {
-			self::log_error(
+			self::log(
 				sprintf(
 					/* translators: 1: endpoint, 2: HTTP code, 3: Tingee code, 4: message */
 					__( 'Tingee API lỗi [%1$s] HTTP=%2$d code=%3$s: %4$s', 'tingee-gateway' ),
@@ -279,7 +280,19 @@ class Tingee_API {
 					$http_code,
 					$tingee_code,
 					$api_message
-				)
+				),
+				'error'
+			);
+		} else {
+			self::log(
+				sprintf(
+					/* translators: 1: HTTP method, 2: endpoint, 3: HTTP code */
+					__( 'Tingee API thành công [%1$s %2$s] HTTP=%3$d', 'tingee-gateway' ),
+					strtoupper( $method ),
+					$endpoint,
+					$http_code
+				),
+				'info'
 			);
 		}
 
@@ -415,14 +428,33 @@ class Tingee_API {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Ghi log lỗi vào WooCommerce Logger (nếu có).
-	 * Không bao giờ log secret token.
+	 * Ghi log vào WooCommerce Logger (nếu có).
+	 * Không bao giờ log secret token — dùng mask_secret() nếu cần tham chiếu.
 	 *
 	 * @param string $message Nội dung log.
+	 * @param string $level   Level: 'info' | 'warning' | 'error'. Mặc định 'error'.
 	 */
-	private static function log_error( $message ) {
+	private static function log( $message, $level = 'error' ) {
 		if ( function_exists( 'wc_get_logger' ) ) {
-			wc_get_logger()->error( $message, array( 'source' => 'tingee-gateway' ) );
+			wc_get_logger()->log( $level, $message, array( 'source' => 'tingee-gateway' ) );
 		}
+	}
+
+	/**
+	 * Che bớt secret token để an toàn khi ghi log hoặc hiển thị.
+	 *
+	 * Ví dụ: "abcdef1234567890" → "abcd************"
+	 * Chỉ giữ lại 4 ký tự đầu, phần còn lại thay bằng '*'.
+	 * Nếu chuỗi ngắn hơn 4 ký tự → trả về "****" hoàn toàn.
+	 *
+	 * @param string $secret Secret Token cần che.
+	 * @return string Chuỗi đã mask.
+	 */
+	public static function mask_secret( $secret ) {
+		$len = strlen( $secret );
+		if ( $len <= 4 ) {
+			return '****';
+		}
+		return substr( $secret, 0, 4 ) . str_repeat( '*', $len - 4 );
 	}
 }

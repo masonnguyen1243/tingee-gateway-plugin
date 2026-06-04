@@ -136,7 +136,7 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 ## GIAI ĐOẠN 8 — Log, i18n, hoàn thiện
 
-- [ ] **T8.1** 🟡 Ghi log webhook qua `WC_Logger`, mask secret.
+- [x] **T8.1** 🟡 Ghi log webhook qua `WC_Logger`, mask secret.
 - [ ] **T8.2** 🟡 Tạo file `.pot`, bản dịch Tiếng Việt; bọc mọi chuỗi trong hàm dịch.
 - [ ] **T8.3** 🟢 Tùy chọn tải xuống sản phẩm số (Thủ công/Tự động) như SePay.
 

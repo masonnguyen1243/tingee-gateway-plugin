@@ -4,6 +4,24 @@
 
 ---
 
+## [1.0.0] — 2026-06-04 (cập nhật lần 3)
+
+### Giai đoạn 8 — Log, i18n, hoàn thiện
+
+**T8.1** ✅ — Hoàn thiện log WC_Logger + mask secret
+
+- `includes/class-tingee-api.php`:
+  - Đổi `log_error($message)` → `log($message, $level = 'error')` — hỗ trợ đầy đủ 3 level: `info`, `warning`, `error`. Source log: `tingee-gateway`.
+  - Thêm static method `mask_secret($secret)`: giữ 4 ký tự đầu + thay phần còn lại bằng `*` (ví dụ `abcd****...****`). Dùng bất cứ khi nào cần tham chiếu secret trong log mà không lộ giá trị thật.
+  - Thêm log `info` cho API call thành công: `"Tingee API thành công [POST /v1/...] HTTP=200"` — giúp debug mà không cần bật WP_DEBUG.
+  - Cập nhật 2 chỗ gọi `log_error()` → `log(..., 'error')`.
+- `includes/class-tingee-webhook.php`:
+  - Thêm log `info` sau khi verify signature thành công: ghi IP nguồn (`x-real-ip`) và timestamp để audit trail.
+  - Khi signature sai: log thêm 4 ký tự đầu của signature nhận được (dùng `mask_secret()`) để dễ debug mà không lộ chữ ký thật.
+  - Cập nhật log "Secret Token chưa cấu hình" → thêm hướng dẫn sửa trực tiếp trong message.
+
+---
+
 ## [1.0.0] — 2026-06-04 (cập nhật lần 2)
 
 ### Bug fixes — QR hiển thị & Webhook nhận

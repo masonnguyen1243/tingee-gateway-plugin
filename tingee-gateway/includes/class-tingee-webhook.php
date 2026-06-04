@@ -81,7 +81,7 @@ class Tingee_Webhook {
 		$secret_token = isset( $settings['secret_token'] ) ? $settings['secret_token'] : '';
 
 		if ( empty( $secret_token ) ) {
-			$this->log( 'Webhook nhận được nhưng Secret Token chưa cấu hình.', 'error' );
+			$this->log( 'Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → Settings → Payments → Tingee để điền Secret Token.', 'error' );
 			return new WP_REST_Response( array( 'error' => 'Gateway not configured.' ), 500 );
 		}
 
@@ -95,10 +95,22 @@ class Tingee_Webhook {
 		}
 
 		if ( ! Tingee_API::verify_webhook_signature( $signature, $timestamp, $raw_body, $secret_token ) ) {
-			$this->log( 'Webhook bị từ chối: chữ ký x-signature không hợp lệ.', 'error' );
+			// Log thêm 4 ký tự đầu của signature nhận được để dễ debug (không log secret).
+			$this->log(
+				sprintf(
+					'Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s',
+					Tingee_API::mask_secret( $signature )
+				),
+				'error'
+			);
 			// Trả 401 — Tingee sẽ KHÔNG retry request lỗi chữ ký (chỉ retry 5xx/timeout).
 			return new WP_REST_Response( array( 'error' => 'Invalid signature.' ), 401 );
 		}
+
+		$this->log(
+			sprintf( 'Webhook hợp lệ nhận được. IP: %s. Timestamp: %s.', $request->get_header( 'x-real-ip' ), $timestamp ),
+			'info'
+		);
 
 		// ------------------------------------------------------------------
 		// T5.3 — Parse payload, phân loại Chế độ A hay Chế độ B
