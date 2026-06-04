@@ -145,7 +145,7 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 - [x] **T9.1** 🔴 Viết `readme.txt` đúng chuẩn WP.org (header, Stable tag, Tested up to, Description, Installation, FAQ, Screenshots, Changelog).
 - [x] **T9.2** 🔴 Chạy **Plugin Check**, sửa hết lỗi blocking. ✅ Confirmed: 0 errors.
-- [ ] **T9.3** 🔴 Rà checklist bảo mật (CLAUDE.md mục 4) lần cuối; bỏ mọi secret cứng.
+- [x] **T9.3** 🔴 Rà checklist bảo mật (CLAUDE.md mục 4) lần cuối; bỏ mọi secret cứng. ✅ PASS — không có lỗi blocking.
 - [ ] **T9.4** 🟡 Chuẩn bị assets WP.org: `icon-128x128.png`, `banner-772x250.png`, ảnh screenshot.
 - [ ] **T9.5** 🔴 Đăng nhập WordPress.org → **Submit a plugin** → upload zip → chờ review (1–10 ngày).
 - [ ] **T9.6** 🔴 Sau khi duyệt: nhận SVN repo, commit code vào `trunk`, tag version → plugin lên kho.

@@ -18,6 +18,23 @@
 
 -->
 
+### 2026-06-04 — [Task T9.3] Final Security Checklist
+
+- **Loại**: [Bảo mật]
+- **Mô tả**: Rà toàn bộ code PHP theo checklist CLAUDE.md mục 4. Kết quả: **PASS — không có lỗi blocking**.
+  - ✅ **Escape output**: 100% output dùng `esc_html()`, `esc_attr()`, `esc_url()`, `wp_kses_post()` — không có `echo $var` trần.
+  - ✅ **Sanitize input**: 100% `$_POST`/`$_GET` qua `sanitize_text_field() + wp_unslash()` hoặc `absint()`.
+  - ✅ **Nonce**: `tingee_test_connection` → `check_ajax_referer()`; `tingee_check_status` → `wp_verify_nonce(..._.$order_id)`. WC Settings protected by WooCommerce.
+  - ✅ **Webhook signature**: HMAC-SHA512 + `hash_equals()` (timing-safe). Thiếu header → 401. Sai chữ ký → 401.
+  - ✅ **Idempotency**: Mode A → `_tingee_processed_transactions`; Mode B → `_tingee_processed_webhooks_b`.
+  - ✅ **Không có secret cứng**: 100% credentials đọc từ `get_option('woocommerce_tingee_gateway_settings')`. Secret Token type `password`.
+  - ✅ **Không log secret**: `Tingee_API::mask_secret()` dùng khi log signature. Secret Token không bao giờ xuất hiện trong log.
+  - **Fix nhỏ**: `class-tingee-api.php` — `$response->get_error_message()` thêm `sanitize_text_field()` tại nguồn. `class-tingee-gateway.php` — đổi `esc_html()` → `sanitize_text_field()` trong `wc_add_notice()` để tránh double-escape.
+- **File thay đổi**: `includes/class-tingee-api.php`, `includes/class-tingee-gateway.php`
+- **Trạng thái**: T9.3 ✅ Done — plugin sẵn sàng submit WordPress.org.
+
+---
+
 ### 2026-06-04 — [Task T9.2 bổ sung] Plugin Check — sửa lỗi từ kết quả chạy thực tế
 
 - **Loại**: [Fix lỗi]

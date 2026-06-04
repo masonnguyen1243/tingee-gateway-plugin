@@ -218,7 +218,7 @@ class Tingee_API {
 				'success'      => false,
 				'data'         => array(),
 				'tingee_code'  => '',
-				'message'      => $response->get_error_message(),
+				'message'      => sanitize_text_field( $response->get_error_message() ),
 				'http_code'    => 0,
 			);
 		}

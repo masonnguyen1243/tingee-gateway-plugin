@@ -463,7 +463,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			if ( 0 === $result['http_code'] ) {
 				// http_code = 0: lỗi cục bộ — không kết nối được hoặc cấu hình sai.
 				// Hiển thị thông báo cụ thể (vd: "Client ID chưa cấu hình", "cURL error"...).
-				wc_add_notice( esc_html( $result['message'] ), 'error' );
+				wc_add_notice( sanitize_text_field( $result['message'] ), 'error' );
 			} else {
 				// Lỗi từ Tingee API (4xx/5xx) — chi tiết đã được ghi vào WooCommerce Logs.
 				// Vào WooCommerce → Trạng thái → Nhật ký → chọn nguồn "tingee-gateway" để xem.
