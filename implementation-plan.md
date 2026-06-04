@@ -95,7 +95,7 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 ## GIAI ĐOẠN 7 — Checkout Blocks & tương thích
 
-- [ ] **T7.1** 🔴 `class-tingee-blocks.php`: tích hợp `AbstractPaymentMethodType` để phương thức hiện trong **Checkout Blocks**.
+- [x] **T7.1** 🔴 `class-tingee-blocks.php`: tích hợp `AbstractPaymentMethodType` để phương thức hiện trong **Checkout Blocks**.
   - **DoD**: Bật Checkout Blocks → phương thức Tingee vẫn hiện và thanh toán được.
 - [ ] **T7.2** 🟡 Kiểm tra giao diện trên vài theme phổ biến (Storefront, theme mặc định).
 

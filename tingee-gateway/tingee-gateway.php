@@ -126,8 +126,10 @@ function tingee_load_classes() {
 	// Lớp nhận và xử lý Webhook IPN từ Tingee.
 	require_once TINGEE_PLUGIN_DIR . 'includes/class-tingee-webhook.php';
 
-	// Lớp tích hợp WooCommerce Checkout Blocks.
-	require_once TINGEE_PLUGIN_DIR . 'includes/class-tingee-blocks.php';
+	// Đăng ký Blocks integration — chỉ khi WooCommerce Blocks đã load AbstractPaymentMethodType.
+	// Dùng hook woocommerce_blocks_payment_method_type_registration thay vì require trực tiếp
+	// vì AbstractPaymentMethodType chỉ tồn tại khi WC Blocks package được kích hoạt.
+	add_action( 'woocommerce_blocks_payment_method_type_registration', 'tingee_register_block_payment_method' );
 
 	// Đăng ký payment gateway vào WooCommerce.
 	add_filter( 'woocommerce_payment_gateways', 'tingee_register_gateway' );
@@ -268,7 +270,26 @@ function tingee_ajax_check_status() {
 }
 
 // ---------------------------------------------------------------------------
-// 7. Nạp file dịch
+// 7. Đăng ký Tingee vào WooCommerce Checkout Blocks
+// ---------------------------------------------------------------------------
+
+/**
+ * Callback của hook woocommerce_blocks_payment_method_type_registration.
+ * Require class và đăng ký vào $registry chỉ khi AbstractPaymentMethodType tồn tại,
+ * tránh fatal error khi WC Blocks chưa được cài hoặc phiên bản quá cũ.
+ *
+ * @param \Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $registry Registry của WC Blocks.
+ */
+function tingee_register_block_payment_method( $registry ) {
+	if ( ! class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+		return;
+	}
+	require_once TINGEE_PLUGIN_DIR . 'includes/class-tingee-blocks.php';
+	$registry->register( new Tingee_Gateway_Blocks() );
+}
+
+// ---------------------------------------------------------------------------
+// 8. Nạp file dịch
 // ---------------------------------------------------------------------------
 add_action( 'init', 'tingee_load_textdomain' );
 

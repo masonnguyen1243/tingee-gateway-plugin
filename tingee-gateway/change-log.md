@@ -4,6 +4,28 @@
 
 ---
 
+## [1.0.0] — 2026-06-04
+
+### Giai đoạn 7 — Checkout Blocks & tương thích
+
+**T7.1** ✅ — Tích hợp WooCommerce Checkout Blocks (`AbstractPaymentMethodType`)
+
+- `includes/class-tingee-blocks.php`: viết lại đầy đủ, extends `AbstractPaymentMethodType`.
+  - `initialize()`: đọc settings, lấy instance `Tingee_Gateway` từ WC gateway registry.
+  - `is_active()`: delegate sang `$gateway->is_available()` để nhất quán với classic checkout.
+  - `get_payment_method_script_handles()`: register và return handle `tingee-blocks` (file `assets/js/blocks.js`); gắn translations nếu có.
+  - `get_payment_method_data()`: truyền `title`, `description`, `supports` sang JS qua WC Settings API.
+- `assets/js/blocks.js` (file mới): đăng ký `tingee_gateway` vào `wc.wcBlocksRegistry`.
+  - Nhận `title` + `description` từ `getSetting('tingee_gateway_data')`.
+  - Render `<p class="tingee-block-description">` khi khách chọn phương thức.
+  - QR code vẫn hiển thị trên trang thank-you (xử lý bởi `thankyou_page()` đã có từ T4.2) — không thay đổi.
+- `tingee-gateway.php`: bỏ `require_once class-tingee-blocks.php` trực tiếp; thay bằng hook `woocommerce_blocks_payment_method_type_registration` → `tingee_register_block_payment_method()`.
+  - Hàm này guard bằng `class_exists(AbstractPaymentMethodType)` → không fatal error khi WC Blocks chưa cài.
+
+**DoD**: Bật Checkout Blocks → phương thức Tingee hiện trong danh sách, chọn → thấy mô tả, đặt hàng → redirect về trang thank-you hiển thị QR bình thường.
+
+---
+
 ## [1.0.0] — 2026-06-03
 
 ### Giai đoạn 1 — Khung plugin (Scaffold)
