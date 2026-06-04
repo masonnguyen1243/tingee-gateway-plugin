@@ -107,12 +107,12 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 > **Hướng xử lý**: Dùng Static QR (`/v1/generate-viet-qr`) — matching webhook bằng `content` (nội dung chuyển khoản = mã đơn WC) thay vì `billId`.
 > **Khi Tingee bật dynamic QR**: đổi lại `create_static_qr` → `create_dynamic_qr` và restore params cũ.
 
-- [ ] **T7B.1** 🔴 `class-tingee-api.php`: thêm method `create_static_qr($params)` gọi `POST /v1/generate-viet-qr`.
+- [x] **T7B.1** 🔴 `class-tingee-api.php`: thêm method `create_static_qr($params)` gọi `POST /v1/generate-viet-qr`.
   - Params: `bankBin`, `accountNumber`, `amount` (optional), `content` (optional), `merchantId` (optional).
   - Response: `data.qrCode` (VietQR string), `data.qrCodeImage` (base64 PNG — dùng để hiển thị).
   - Giữ nguyên `create_dynamic_qr()` để sau này dùng lại.
 
-- [ ] **T7B.2** 🔴 `class-tingee-gateway.php` — `process_payment()`:
+- [x] **T7B.2** 🔴 `class-tingee-gateway.php` — `process_payment()`:
   - Gọi `create_static_qr()` thay vì `create_dynamic_qr()`.
   - Đổi params: `vaAccountNumber` → `accountNumber`, `purpose` → `content`; bỏ `qrCodeType` và `expireInMinute`.
   - Lưu `qrCodeImage` (base64) vào `_tingee_qr_code` (để hiển thị ảnh QR).
@@ -120,11 +120,11 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
   - Thêm meta `_tingee_qr_type = 'static'` để phân biệt sau này.
   - **DoD**: Checkout thành công → trang thank-you hiển thị ảnh QR.
 
-- [ ] **T7B.3** 🔴 `class-tingee-gateway.php` — `thankyou_page()`:
+- [x] **T7B.3** 🔴 `class-tingee-gateway.php` — `thankyou_page()`:
   - Bỏ điều kiện `empty($bill_id)` trong check hiển thị QR (static QR không có billId).
   - Chỉ cần `!empty($qr_code)` để hiển thị.
 
-- [ ] **T7B.4** 🔴 `class-tingee-webhook.php` — matching khi không có `billId`:
+- [x] **T7B.4** 🔴 `class-tingee-webhook.php` — matching khi không có `billId`:
   - Hiện tại: không có `billId` → bỏ qua (return 200 ignored).
   - Sửa thành: không có `billId` → thử tìm đơn bằng `content` (nội dung CK = mã đơn WC).
   - Tìm được đơn → xử lý payment_complete() như bình thường.

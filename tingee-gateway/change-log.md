@@ -4,6 +4,48 @@
 
 ---
 
+## [1.0.0] — 2026-06-04 (cập nhật)
+
+### Giai đoạn 7B — Chuyển sang Static QR
+
+**T7B.4** ✅ — Webhook matching bằng `content` khi không có `billId`
+
+- `includes/class-tingee-webhook.php`:
+  - Thay khối `if ( empty( $bill_id ) ) return Ignored` bằng logic phân nhánh:
+    - **Có `billId`** (Dynamic QR): tìm đơn qua `_tingee_bill_id` như cũ.
+    - **Không có `billId`** (Static QR): tìm đơn qua `_tingee_purpose` = `content` (nội dung CK), lọc thêm `payment_method = tingee_gateway` + `status = on-hold`.
+    - Không tìm được theo cả 2 cách → log warning + trả 200 (có thể CK thủ công không liên quan).
+  - Thêm biến `$order_identifier` ('billId=...' hoặc 'content=...') để log message rõ ràng theo từng loại QR.
+  - Cập nhật 3 log message trong T5.4 và T5.5 từ `$bill_id` → `$order_identifier`.
+  - Phần xử lý idempotency + đối soát tiền + `payment_complete()` dùng chung cho cả 2 loại QR.
+
+**T7B.3** ✅ — Sửa `thankyou_page()` bỏ check `bill_id` (T7B.3 làm kèm T7B.2 vì bắt buộc)
+
+- `includes/class-tingee-gateway.php` — `thankyou_page()`:
+  - Bỏ `$bill_id = $order->get_meta('_tingee_bill_id')` — meta này không còn được lưu.
+  - Đổi điều kiện `empty($bill_id) || empty($qr_code)` → chỉ còn `empty($qr_code)`.
+  - Cập nhật docblock bỏ đề cập `_tingee_bill_id`.
+
+**T7B.2** ✅ — Chuyển `process_payment()` sang Static QR
+
+- `includes/class-tingee-gateway.php` — `process_payment()`:
+  - Đổi `$qr_params`: `vaAccountNumber` → `accountNumber`, `purpose` → `content`; bỏ `qrCodeType` và `expireInMinute`.
+  - Gọi `Tingee_API::create_static_qr()` thay vì `create_dynamic_qr()`.
+  - Lưu meta: bỏ `_tingee_bill_id`; lưu `qrCodeImage` (base64 PNG) vào `_tingee_qr_code`.
+  - `_tingee_qr_account` lưu từ `$this->va_account_number` (Static QR không trả về `qrAccount`).
+  - Thêm `_tingee_qr_type = 'static'` để phân biệt sau khi bật lại Dynamic QR.
+  - Cập nhật note trạng thái đơn: bỏ `billId`, ghi nội dung chuyển khoản thay vào.
+
+**T7B.1** ✅ — Thêm `create_static_qr()` vào `class-tingee-api.php`
+
+- `includes/class-tingee-api.php`: thêm static method `create_static_qr($params)` gọi `POST /v1/generate-viet-qr`.
+  - Params: `bankBin` (bắt buộc), `accountNumber` (bắt buộc), `amount` (tùy chọn), `content` (tùy chọn), `merchantId` (tùy chọn).
+  - Response: `data.qrCode` (chuỗi VietQR EMV), `data.qrCodeImage` (Base64 PNG).
+  - Giữ nguyên `create_dynamic_qr()` để dùng lại khi Tingee bật tính năng Dynamic QR.
+  - Method delegate về `self::request('/v1/generate-viet-qr', $params)` — tái dùng toàn bộ logic ký chữ ký, gửi request, parse response hiện có.
+
+---
+
 ## [1.0.0] — 2026-06-04
 
 ### Giai đoạn 7 — Checkout Blocks & tương thích

@@ -439,12 +439,10 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		$purpose = (string) $order->get_order_number();
 
 		$qr_params = array(
-			'vaAccountNumber' => $this->va_account_number,
-			'qrCodeType'      => 'dynamic-one-time-payment',
-			'bankBin'         => $this->bank_bin,
-			'amount'          => $amount,
-			'purpose'         => $purpose,
-			'expireInMinute'  => 30,
+			'accountNumber' => $this->va_account_number,
+			'bankBin'       => $this->bank_bin,
+			'amount'        => $amount,
+			'content'       => $purpose,
 		);
 
 		// Kiểm tra sớm credentials — trước khi gọi API để hiện lỗi rõ ràng hơn.
@@ -460,8 +458,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			return array( 'result' => 'failure' );
 		}
 
-		// Gọi API Tingee tạo QR động.
-		$result = Tingee_API::create_dynamic_qr( $qr_params );
+		// Gọi API Tingee tạo Static VietQR.
+		$result = Tingee_API::create_static_qr( $qr_params );
 
 		if ( ! $result['success'] ) {
 			if ( 0 === $result['http_code'] ) {
@@ -486,20 +484,21 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		$data = $result['data'];
 
 		// Lưu thông tin QR vào order meta — HPOS-safe (dùng $order API, không dùng update_post_meta).
-		$order->update_meta_data( '_tingee_bill_id',    sanitize_text_field( $data['billId'] ) );
-		$order->update_meta_data( '_tingee_qr_code',    sanitize_text_field( $data['qrCode'] ) );
-		$order->update_meta_data( '_tingee_qr_account', sanitize_text_field( $data['qrAccount'] ) );
+		// Static QR: dùng qrCodeImage (base64 PNG), không có billId hay qrAccount riêng.
+		$order->update_meta_data( '_tingee_qr_code',    sanitize_text_field( $data['qrCodeImage'] ) );
+		$order->update_meta_data( '_tingee_qr_account', sanitize_text_field( $this->va_account_number ) );
 		$order->update_meta_data( '_tingee_amount',     $amount );
 		$order->update_meta_data( '_tingee_purpose',    $purpose );
+		$order->update_meta_data( '_tingee_qr_type',    'static' );
 		$order->save();
 
 		// Đặt đơn về On-Hold — chờ Webhook từ Tingee xác nhận thanh toán.
 		$order->update_status(
 			'on-hold',
 			sprintf(
-				/* translators: %s: Tingee billId */
-				__( 'Chờ thanh toán qua Tingee. Mã hóa đơn (billId): %s', 'tingee-gateway' ),
-				sanitize_text_field( $data['billId'] )
+				/* translators: %s: nội dung chuyển khoản (mã đơn hàng) */
+				__( 'Chờ thanh toán qua Tingee (Static QR). Nội dung chuyển khoản: %s', 'tingee-gateway' ),
+				$purpose
 			)
 		);
 
@@ -665,9 +664,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	 * Hiển thị hộp QR code và thông tin chuyển khoản trên trang thank-you.
 	 * Hook: woocommerce_thankyou_tingee_gateway — WooCommerce tự scope theo payment method.
 	 *
-	 * Dữ liệu đọc từ order meta được lưu bởi process_payment() ở T4.1:
-	 *   _tingee_bill_id    — mã hóa đơn Tingee.
-	 *   _tingee_qr_code    — chuỗi QR code (base64 PNG hoặc URL).
+	 * Dữ liệu đọc từ order meta được lưu bởi process_payment():
+	 *   _tingee_qr_code    — ảnh QR base64 PNG (Static QR) hoặc chuỗi QR URL (Dynamic QR cũ).
 	 *   _tingee_qr_account — số tài khoản VA hiển thị cho khách.
 	 *   _tingee_amount     — số tiền (int VND).
 	 *   _tingee_purpose    — nội dung chuyển khoản.
@@ -710,16 +708,15 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		}
 
 		// ------------------------------------------------------------------
-		// Chế độ A: Đọc meta QR đã lưu từ T4.1.
+		// Chế độ A: Đọc meta QR đã lưu từ process_payment().
 		// ------------------------------------------------------------------
-		$bill_id    = $order->get_meta( '_tingee_bill_id' );
 		$qr_code    = $order->get_meta( '_tingee_qr_code' );
 		$qr_account = $order->get_meta( '_tingee_qr_account' );
 		$amount     = (int) $order->get_meta( '_tingee_amount' );
 		$purpose    = $order->get_meta( '_tingee_purpose' );
 
-		// Không hiển thị nếu thiếu dữ liệu QR (đơn đã paid đã xử lý ở trên).
-		if ( empty( $bill_id ) || empty( $qr_code ) ) {
+		// Không hiển thị nếu thiếu QR — Static QR không có billId nên chỉ kiểm tra qr_code.
+		if ( empty( $qr_code ) ) {
 			return;
 		}
 

@@ -143,26 +143,60 @@ class Tingee_Webhook {
 			}
 		}
 
-		if ( empty( $bill_id ) ) {
-			$this->log( 'Webhook payload thiếu billId trong additionalData — có thể là giao dịch VA thông thường (không phải QR động).', 'warning' );
-			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Ignored.' ), 200 );
-		}
+		// Tìm đơn hàng — Dynamic QR dùng billId, Static QR dùng content (nội dung CK).
+		// $order_identifier dùng trong log bên dưới để nhận diện đơn theo loại QR.
+		$order_identifier = '';
 
-		// Tìm đơn hàng bằng billId đã lưu trong order meta ở T4.1.
-		$orders = wc_get_orders(
-			array(
-				'limit'      => 1,
-				'meta_key'   => '_tingee_bill_id',  // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value' => $bill_id,            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-			)
-		);
-
-		if ( empty( $orders ) ) {
-			$this->log(
-				sprintf( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng trong hệ thống.', $bill_id ),
-				'warning'
+		if ( ! empty( $bill_id ) ) {
+			// Dynamic QR: tìm bằng _tingee_bill_id đã lưu lúc tạo QR.
+			$orders = wc_get_orders(
+				array(
+					'limit'      => 1,
+					'meta_key'   => '_tingee_bill_id',  // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					'meta_value' => $bill_id,            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				)
 			);
-			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
+
+			if ( empty( $orders ) ) {
+				$this->log(
+					sprintf( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng.', $bill_id ),
+					'warning'
+				);
+				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
+			}
+
+			$order_identifier = 'billId=' . $bill_id;
+
+		} else {
+			// Static QR: không có billId → tìm qua nội dung chuyển khoản = mã đơn WC.
+			// Nếu khách sửa nội dung CK thì match sẽ thất bại — cần xử lý thủ công.
+			if ( empty( $transfer_content ) ) {
+				$this->log( 'Webhook thiếu cả billId lẫn content — không thể xác định đơn hàng.', 'warning' );
+				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Ignored: no identifier.' ), 200 );
+			}
+
+			$orders = wc_get_orders(
+				array(
+					'limit'          => 1,
+					'payment_method' => 'tingee_gateway',
+					'status'         => array( 'wc-on-hold' ),
+					'meta_key'       => '_tingee_purpose',  // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					'meta_value'     => $transfer_content,   // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+				)
+			);
+
+			if ( empty( $orders ) ) {
+				$this->log(
+					sprintf(
+						'Webhook Static QR: không tìm được đơn on-hold nào với nội dung CK "%s". Khách có thể đã sửa nội dung CK — cần xử lý thủ công.',
+						$transfer_content
+					),
+					'warning'
+				);
+				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
+			}
+
+			$order_identifier = 'content=' . $transfer_content;
 		}
 
 		/** @var WC_Order $order */
@@ -179,8 +213,8 @@ class Tingee_Webhook {
 			if ( in_array( $transaction_code, $processed_ids, true ) ) {
 				$this->log(
 					sprintf(
-						'Webhook billId=%s transactionCode=%s: đã xử lý trước đó, bỏ qua (idempotency).',
-						$bill_id,
+						'Webhook Mode A %s transactionCode=%s: đã xử lý trước đó, bỏ qua (idempotency).',
+						$order_identifier,
 						$transaction_code
 					),
 					'info'
@@ -222,8 +256,8 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook Mode A billId=%s transactionCode=%s: thanh toán thành công. Đơn #%d → Processing.',
-					$bill_id,
+					'Webhook Mode A %s transactionCode=%s: thanh toán thành công. Đơn #%d → Processing.',
+					$order_identifier,
 					! empty( $transaction_code ) ? $transaction_code : 'N/A',
 					$order->get_id()
 				),
@@ -245,8 +279,8 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook Mode A billId=%s: THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
-					$bill_id,
+					'Webhook Mode A %s: THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
+					$order_identifier,
 					$received_amount,
 					$expected_amount,
 					$order->get_id()

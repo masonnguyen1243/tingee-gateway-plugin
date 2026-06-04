@@ -339,6 +339,32 @@ class Tingee_API {
 	}
 
 	/**
+	 * Tạo Static VietQR cho một đơn hàng — dùng khi Dynamic QR chưa được tài khoản hỗ trợ.
+	 *
+	 * Endpoint: POST /v1/generate-viet-qr
+	 *
+	 * Response data: { qrCode, qrCodeImage }
+	 *   - qrCode      : Chuỗi VietQR (EMV QR format) — có thể dùng để tự render.
+	 *   - qrCodeImage : Ảnh QR dạng Base64 PNG — dùng trực tiếp trong thẻ <img>.
+	 *
+	 * Khác với Dynamic QR:
+	 *   - Không có billId → webhook phải match đơn qua trường `content` (nội dung CK).
+	 *   - Không có thời hạn hết hạn (QR tĩnh — luôn quét được).
+	 *
+	 * @param array $params {
+	 *     @type string $bankBin       BIN code của ngân hàng (bắt buộc, vd "970436" = VPBank).
+	 *     @type string $accountNumber Số tài khoản nhận tiền (bắt buộc).
+	 *     @type int    $amount        Số tiền VND (không bắt buộc — nếu để trống khách tự nhập).
+	 *     @type string $content       Nội dung chuyển khoản mặc định (không bắt buộc).
+	 *     @type int    $merchantId    Master Merchant ID (không bắt buộc).
+	 * }
+	 * @return array Kết quả chuẩn hóa từ self::request().
+	 */
+	public static function create_static_qr( $params ) {
+		return self::request( '/v1/generate-viet-qr', $params );
+	}
+
+	/**
 	 * Tạo link thanh toán (Checkout URL) — Chế độ B (Payment Gateway Redirect).
 	 *
 	 * Endpoint: POST /v1/payment-gateway/create-link
