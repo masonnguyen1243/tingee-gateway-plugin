@@ -27,6 +27,27 @@
 
 -->
 
+### 2026-06-03 — [Task T6.1–T6.2] Chế độ B — Redirect Payment Gateway
+
+- **Loại**: [Tính năng mới]
+- **Mô tả**:
+  - **`class-tingee-api.php`** — thêm `create_payment_link($params)`: gọi `POST /v1/payment-gateway/create-link`, trả về Checkout URL dạng string.
+  - **`class-tingee-gateway.php`**:
+    - **T6.1** — `process_payment_mode_b($order)`: method mới thay thế placeholder Chế độ B. Sinh `requestId` (UUID v4) + `orderId` (`WC-{order_number}`, sanitized). Gọi `Tingee_API::create_payment_link()`. Lưu `_tingee_order_id_ext` + `_tingee_amount` vào order meta. Đặt On-Hold. Redirect khách sang Checkout URL trả về từ Tingee.
+    - **T6.2** — `thankyou_page()`: thêm nhánh Chế độ B ở đầu — nếu `_tingee_order_id_ext` tồn tại (= đơn Mode B vừa quay về từ Tingee), render `#tingee-payment-box` với spinner chờ xác nhận. JS poll (T4.3) sẽ tự cập nhật khi webhook Mode B đến.
+  - **`class-tingee-webhook.php`** — cập nhật `handle()`: phân biệt webhook Chế độ A (có `additionalData[].billId`) vs Chế độ B (có `orderId` + `status`); route sang `handle_mode_b()` cho Chế độ B. Thêm `handle_mode_b()`: tìm đơn qua `_tingee_order_id_ext`, idempotency bằng `requestId` webhook trong `_tingee_processed_webhooks_b`, xử lý đủ 3 status: `success` → `payment_complete()`, các status khác (`expired`/`canceled`) → ghi note, giữ On-Hold.
+- **File thay đổi**: `includes/class-tingee-api.php`, `includes/class-tingee-gateway.php`, `includes/class-tingee-webhook.php`
+- **Trạng thái DoD**: Đạt về code. Cần test với Tingee thật (môi trường UAT).
+- **Cần Cường test**:
+  1. Vào Settings → chọn **Chế độ B** → Save.
+  2. Đặt đơn hàng → chọn Tingee → "Place Order" → phải được redirect sang trang thanh toán Tingee.
+  3. Thanh toán xong trên Tingee → được redirect về trang thank-you WC → thấy spinner "Đang xác nhận...".
+  4. Trong ≤15s: JS poll phát hiện đơn đã paid → hiện "✓ Thanh toán thành công!" → redirect trang xem đơn.
+  5. Kiểm tra order note có ghi: số tiền, phương thức, thời gian thanh toán.
+  6. Gửi lại webhook Chế độ B lần 2 → đơn KHÔNG bị gạch nợ 2 lần (`_tingee_processed_webhooks_b`).
+
+---
+
 ### 2026-06-03 — [Task T5.1–T5.6] Webhook IPN — toàn bộ Giai đoạn 5
 - **Loại**: [Tính năng mới] [Bảo mật]
 - **Mô tả**:

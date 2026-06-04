@@ -338,6 +338,28 @@ class Tingee_API {
 		return self::request( '/v1/generate-dynamic-qr', $params );
 	}
 
+	/**
+	 * Tạo link thanh toán (Checkout URL) — Chế độ B (Payment Gateway Redirect).
+	 *
+	 * Endpoint: POST /v1/payment-gateway/create-link
+	 *
+	 * Response: $data là Checkout URL dạng string — redirect khách đến URL này.
+	 *
+	 * @param array $params {
+	 *     @type string $requestId       UUID v4, tối đa 36 ký tự (bắt buộc).
+	 *     @type string $orderId         Mã đơn từ hệ thống của bạn, tối đa 100 ký tự, chỉ [a-zA-Z0-9-_] (bắt buộc).
+	 *     @type int    $amount          Số tiền VND (bắt buộc, 2,000–10,000,000,000).
+	 *     @type string $returnUrl       URL redirect sau khi khách thanh toán (không bắt buộc).
+	 *     @type string $description     Mô tả giao dịch, tối đa 200 ký tự (không bắt buộc).
+	 *     @type int    $expireInMinute  Số phút link còn hiệu lực 5–30, mặc định 30 (không bắt buộc).
+	 *     @type string $customerEmail   Email khách hàng (không bắt buộc).
+	 * }
+	 * @return array Kết quả chuẩn hóa từ self::request(). $data là Checkout URL string.
+	 */
+	public static function create_payment_link( $params ) {
+		return self::request( '/v1/payment-gateway/create-link', $params );
+	}
+
 	// -------------------------------------------------------------------------
 	// PHẦN 4: Xác minh webhook
 	// -------------------------------------------------------------------------

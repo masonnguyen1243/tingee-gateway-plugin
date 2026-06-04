@@ -415,14 +415,9 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
 
-		// Chế độ B — sẽ triển khai ở T6.1. Tạm thời đặt On-Hold và redirect.
+		// Chế độ B — tạo Checkout URL và redirect khách sang trang Tingee.
 		if ( 'mode_b' === $this->integration_mode ) {
-			$order->update_status( 'on-hold', __( 'Chờ thanh toán qua Tingee (Chế độ B — Redirect).', 'tingee-gateway' ) );
-			WC()->cart->empty_cart();
-			return array(
-				'result'   => 'success',
-				'redirect' => $this->get_return_url( $order ),
-			);
+			return $this->process_payment_mode_b( $order );
 		}
 
 		// --- Chế độ A: QR động + Webhook ---
@@ -493,6 +488,104 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Tạo Checkout URL Tingee và redirect khách sang trang thanh toán của Tingee (Chế độ B).
+	 *
+	 * Luồng:
+	 *   1. Sinh requestId (UUID v4) + orderId (mã đơn WC sanitized).
+	 *   2. Gọi Tingee API POST /v1/payment-gateway/create-link.
+	 *   3. Lưu _tingee_order_id_ext + _tingee_amount vào order meta (để webhook Mode B map về đúng đơn).
+	 *   4. Redirect khách sang Checkout URL trả về từ Tingee.
+	 *   5. Khi khách thanh toán xong, Tingee redirect về returnUrl (trang thank-you WC).
+	 *   6. Trang thank-you hiển thị màn hình chờ; webhook Mode B sẽ gọi về và xác nhận đơn.
+	 *
+	 * @param WC_Order $order Đơn hàng WooCommerce.
+	 * @return array|void { result, redirect } hoặc void khi thất bại.
+	 */
+	private function process_payment_mode_b( $order ) {
+		$amount    = (int) round( $order->get_total() );
+		$order_num = (string) $order->get_order_number();
+
+		// requestId: UUID v4 bắt buộc, tối đa 36 ký tự.
+		$request_id = wp_generate_uuid4();
+
+		// orderId: chỉ được chứa [a-zA-Z0-9-_], tối đa 100 ký tự.
+		// Prefix "WC-" để phân biệt với hệ thống khác khi nhìn vào Tingee dashboard.
+		$tingee_order_id = substr(
+			'WC-' . preg_replace( '/[^a-zA-Z0-9\-_]/', '-', $order_num ),
+			0,
+			100
+		);
+
+		// description: tối đa 200 ký tự.
+		$description = mb_substr(
+			sprintf(
+				/* translators: %s: mã đơn hàng WooCommerce */
+				__( 'Thanh toán đơn hàng %s', 'tingee-gateway' ),
+				$order_num
+			),
+			0,
+			200
+		);
+
+		// returnUrl: trang thank-you của WooCommerce — JS poll sẽ cập nhật trạng thái tự động.
+		$return_url = $this->get_return_url( $order );
+
+		$params = array(
+			'requestId'      => $request_id,
+			'orderId'        => $tingee_order_id,
+			'amount'         => $amount,
+			'description'    => $description,
+			'returnUrl'      => $return_url,
+			'expireInMinute' => 30,
+			'customerEmail'  => $order->get_billing_email(),
+		);
+
+		$result = Tingee_API::create_payment_link( $params );
+
+		if ( ! $result['success'] ) {
+			wc_add_notice(
+				__( 'Không thể tạo link thanh toán Tingee. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'tingee-gateway' ),
+				'error'
+			);
+			return array( 'result' => 'failure' );
+		}
+
+		// $result['data'] là Checkout URL dạng string (theo tài liệu Tingee).
+		$checkout_url = is_string( $result['data'] ) ? esc_url_raw( $result['data'] ) : '';
+
+		if ( empty( $checkout_url ) ) {
+			wc_add_notice(
+				__( 'Tingee trả về URL thanh toán không hợp lệ. Vui lòng thử lại.', 'tingee-gateway' ),
+				'error'
+			);
+			return array( 'result' => 'failure' );
+		}
+
+		// Lưu meta để webhook Mode B map về đúng đơn — HPOS-safe.
+		// _tingee_order_id_ext: giá trị orderId đã gửi cho Tingee (webhook sẽ trả lại field này).
+		$order->update_meta_data( '_tingee_order_id_ext', $tingee_order_id );
+		$order->update_meta_data( '_tingee_amount',       $amount );
+		$order->save();
+
+		$order->update_status(
+			'on-hold',
+			sprintf(
+				/* translators: %s: orderId trong Tingee */
+				__( 'Chờ thanh toán qua Tingee (Chế độ B). Mã đơn Tingee: %s', 'tingee-gateway' ),
+				$tingee_order_id
+			)
+		);
+
+		WC()->cart->empty_cart();
+
+		// Redirect khách sang trang thanh toán của Tingee.
+		return array(
+			'result'   => 'success',
+			'redirect' => $checkout_url,
+		);
+	}
+
+	/**
 	 * Enqueue CSS và JS cho trang thank-you.
 	 * Chỉ load khi đang ở trang xác nhận đơn hàng (order-received) và đơn dùng Tingee.
 	 */
@@ -558,22 +651,50 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	 */
 	public function thankyou_page( $order_id ) {
 		$order = wc_get_order( $order_id );
-		if ( ! $order ) {
+		if ( ! $order || $order->is_paid() ) {
 			return;
 		}
 
-		// Đọc meta đã lưu từ T4.1.
+		// ------------------------------------------------------------------
+		// T6.2 — Chế độ B: Khách vừa quay về từ trang Tingee qua returnUrl.
+		// Không có QR — chỉ hiển thị màn hình chờ, JS poll sẽ cập nhật tự động
+		// khi webhook Mode B xác nhận thanh toán.
+		// ------------------------------------------------------------------
+		$tingee_order_id_ext = $order->get_meta( '_tingee_order_id_ext' );
+		if ( ! empty( $tingee_order_id_ext ) ) {
+			$status_nonce = wp_create_nonce( 'tingee_check_status_' . $order_id );
+			?>
+			<section class="tingee-payment-box"
+				id="tingee-payment-box"
+				data-order-id="<?php echo esc_attr( $order_id ); ?>"
+				data-nonce="<?php echo esc_attr( $status_nonce ); ?>">
+
+				<div class="tingee-payment-box__status" id="tingee-payment-status">
+					<span class="tingee-status-waiting">
+						<?php esc_html_e( 'Đang xác nhận thanh toán từ Tingee...', 'tingee-gateway' ); ?>
+					</span>
+				</div>
+
+				<p class="tingee-payment-box__note">
+					<?php esc_html_e( 'Vui lòng đợi trong giây lát. Trang sẽ tự động cập nhật khi nhận được xác nhận.', 'tingee-gateway' ); ?>
+				</p>
+
+			</section>
+			<?php
+			return;
+		}
+
+		// ------------------------------------------------------------------
+		// Chế độ A: Đọc meta QR đã lưu từ T4.1.
+		// ------------------------------------------------------------------
 		$bill_id    = $order->get_meta( '_tingee_bill_id' );
 		$qr_code    = $order->get_meta( '_tingee_qr_code' );
 		$qr_account = $order->get_meta( '_tingee_qr_account' );
 		$amount     = (int) $order->get_meta( '_tingee_amount' );
 		$purpose    = $order->get_meta( '_tingee_purpose' );
 
-		// Không hiển thị nếu thiếu dữ liệu hoặc đơn đã hoàn tất.
+		// Không hiển thị nếu thiếu dữ liệu QR (đơn đã paid đã xử lý ở trên).
 		if ( empty( $bill_id ) || empty( $qr_code ) ) {
-			return;
-		}
-		if ( $order->is_paid() ) {
 			return;
 		}
 

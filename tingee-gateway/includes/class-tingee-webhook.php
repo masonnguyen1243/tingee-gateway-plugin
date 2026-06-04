@@ -101,7 +101,7 @@ class Tingee_Webhook {
 		}
 
 		// ------------------------------------------------------------------
-		// T5.3 — Parse payload, tìm đơn hàng
+		// T5.3 — Parse payload, phân loại Chế độ A hay Chế độ B
 		// ------------------------------------------------------------------
 
 		$payload = json_decode( $raw_body, true );
@@ -110,17 +110,28 @@ class Tingee_Webhook {
 			return new WP_REST_Response( array( 'error' => 'Invalid payload.' ), 400 );
 		}
 
-		// Field names theo tài liệu Tingee (developers.tingee.vn/docs/webhook/webhook-payment-callback/).
-		// transactionCode — mã định danh giao dịch duy nhất (dùng cho idempotency).
+		// Phân biệt webhook Chế độ A (QR + Webhook) vs Chế độ B (Payment Gateway):
+		//   Chế độ B: có field 'orderId' (top-level) + 'status' trong payload.
+		//   Chế độ A: có 'transactionCode' + 'additionalData[].billId', không có 'status'.
+		$has_order_id = isset( $payload['orderId'] ) && ! empty( $payload['orderId'] );
+		$has_status   = isset( $payload['status'] );
+
+		if ( $has_order_id && $has_status ) {
+			return $this->handle_mode_b( $payload );
+		}
+
+		// --- Chế độ A: QR động + Webhook ---
+
+		// transactionCode — mã định danh giao dịch duy nhất (dùng cho idempotency T5.4).
 		$transaction_code = isset( $payload['transactionCode'] ) ? sanitize_text_field( $payload['transactionCode'] ) : '';
 		// amount — số tiền thực tế nhận được.
 		$received_amount  = isset( $payload['amount'] ) ? absint( $payload['amount'] ) : 0;
-		// transactionDate — thời gian giao dịch định dạng yyyyMMddHHmmss (dùng ghi log).
+		// transactionDate — thời gian giao dịch định dạng yyyyMMddHHmmss.
 		$transaction_date = isset( $payload['transactionDate'] ) ? sanitize_text_field( $payload['transactionDate'] ) : '';
-		// content — nội dung chuyển khoản (dùng ghi log).
+		// content — nội dung chuyển khoản.
 		$transfer_content = isset( $payload['content'] ) ? sanitize_text_field( $payload['content'] ) : '';
 
-		// billId nằm trong mảng additionalData — chỉ có với QR động (Chế độ A).
+		// billId nằm trong additionalData — chỉ có với QR động (Chế độ A).
 		// Tingee gửi: "additionalData": [ { "billId": "xxx" } ]
 		$bill_id = '';
 		if ( isset( $payload['additionalData'] ) && is_array( $payload['additionalData'] ) ) {
@@ -134,7 +145,6 @@ class Tingee_Webhook {
 
 		if ( empty( $bill_id ) ) {
 			$this->log( 'Webhook payload thiếu billId trong additionalData — có thể là giao dịch VA thông thường (không phải QR động).', 'warning' );
-			// Trả 200 để Tingee không retry — đây là giao dịch không do plugin tạo QR.
 			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Ignored.' ), 200 );
 		}
 
@@ -152,7 +162,6 @@ class Tingee_Webhook {
 				sprintf( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng trong hệ thống.', $bill_id ),
 				'warning'
 			);
-			// Trả 200 để Tingee KHÔNG retry — lỗi phía ta, không phải lỗi gửi webhook.
 			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
 		}
 
@@ -181,18 +190,14 @@ class Tingee_Webhook {
 		}
 
 		// ------------------------------------------------------------------
-		// T5.5 — Đối soát số tiền & gạch nợ
+		// T5.5 — Đối soát số tiền & gạch nợ (Chế độ A)
 		// ------------------------------------------------------------------
 
-		// Tingee chỉ gửi webhook khi giao dịch THÀNH CÔNG (không có field status trong payload).
-		// Không cần kiểm tra status — hễ nhận được webhook hợp lệ là tiền đã vào.
-
+		// Tingee chỉ gửi webhook khi giao dịch THÀNH CÔNG (không có field status trong payload Chế độ A).
 		$expected_amount = (int) $order->get_meta( '_tingee_amount' );
 
 		if ( $received_amount >= $expected_amount && $expected_amount > 0 ) {
-			// --- Đủ tiền: xác nhận thanh toán ---
-
-			// Lưu transactionCode vào danh sách đã xử lý (cho idempotency T5.4).
+			// Lưu transactionCode cho idempotency.
 			if ( ! empty( $transaction_code ) ) {
 				$processed_ids   = $order->get_meta( '_tingee_processed_transactions' );
 				$processed_ids   = is_array( $processed_ids ) ? $processed_ids : array();
@@ -201,7 +206,6 @@ class Tingee_Webhook {
 				$order->save();
 			}
 
-			// Ghi note admin — không gửi email cho khách.
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: số tiền nhận, 2: mã giao dịch, 3: nội dung CK, 4: thời gian GD */
@@ -211,16 +215,14 @@ class Tingee_Webhook {
 					! empty( $transfer_content ) ? $transfer_content : '—',
 					! empty( $transaction_date ) ? $transaction_date : current_time( 'd/m/Y H:i:s' )
 				),
-				false // false = không gửi email khách hàng.
+				false
 			);
 
-			// payment_complete() tự chuyển đơn sang Processing (hoặc Completed với sản phẩm số),
-			// kích hoạt các hook WooCommerce tiêu chuẩn (giảm tồn kho, gửi email, v.v.).
 			$order->payment_complete( $transaction_code );
 
 			$this->log(
 				sprintf(
-					'Webhook billId=%s transactionCode=%s: thanh toán thành công. Đơn #%d → Processing.',
+					'Webhook Mode A billId=%s transactionCode=%s: thanh toán thành công. Đơn #%d → Processing.',
 					$bill_id,
 					! empty( $transaction_code ) ? $transaction_code : 'N/A',
 					$order->get_id()
@@ -229,7 +231,6 @@ class Tingee_Webhook {
 			);
 
 		} else {
-			// --- Thiếu tiền: giữ On-Hold, ghi note để admin xử lý thủ công ---
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: số tiền nhận, 2: số tiền cần, 3: mã giao dịch */
@@ -244,7 +245,7 @@ class Tingee_Webhook {
 
 			$this->log(
 				sprintf(
-					'Webhook billId=%s: thanh toán THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
+					'Webhook Mode A billId=%s: THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
 					$bill_id,
 					$received_amount,
 					$expected_amount,
@@ -255,8 +256,156 @@ class Tingee_Webhook {
 		}
 
 		// ------------------------------------------------------------------
-		// T5.6 — Trả HTTP 200 + body đúng format Tingee yêu cầu để ngừng retry
+		// T5.6 — Trả HTTP 200 để Tingee ngừng retry
 		// ------------------------------------------------------------------
+		return new WP_REST_Response( array( 'code' => '00', 'message' => 'Success' ), 200 );
+	}
+
+	// =========================================================================
+	// T6.2 — Xử lý webhook Chế độ B (Payment Gateway Redirect)
+	// =========================================================================
+
+	/**
+	 * Xử lý webhook từ Tingee khi thanh toán qua Payment Gateway (Chế độ B).
+	 *
+	 * Payload Chế độ B (khác hoàn toàn Chế độ A):
+	 *   - orderId     : mã đơn do plugin sinh ra khi tạo link (map về WC order).
+	 *   - status      : "success" | "expired" | "canceled".
+	 *   - statusCode  : "00" = thành công.
+	 *   - paidAmount  : số tiền thực tế khách đã thanh toán.
+	 *   - amount      : số tiền gốc của link.
+	 *   - requestId   : UUID của webhook request này (dùng cho idempotency).
+	 *   - paidAt      : thời gian thanh toán (ISO 8601).
+	 *   - paymentMethod: "qr", v.v.
+	 *
+	 * @param array $payload Payload JSON đã được json_decode.
+	 * @return WP_REST_Response
+	 */
+	private function handle_mode_b( array $payload ) {
+		$tingee_order_id    = sanitize_text_field( $payload['orderId'] );
+		$status             = strtolower( sanitize_text_field( $payload['status'] ) );
+		$status_code        = isset( $payload['statusCode'] ) ? sanitize_text_field( $payload['statusCode'] ) : '';
+		$received_amount    = isset( $payload['paidAmount'] ) ? absint( $payload['paidAmount'] ) : 0;
+		$paid_at            = isset( $payload['paidAt'] ) ? sanitize_text_field( $payload['paidAt'] ) : '';
+		$payment_method     = isset( $payload['paymentMethod'] ) ? sanitize_text_field( $payload['paymentMethod'] ) : '';
+		// requestId của webhook (không phải requestId ta gửi đi) — dùng cho idempotency.
+		$webhook_request_id = isset( $payload['requestId'] ) ? sanitize_text_field( $payload['requestId'] ) : '';
+
+		// Tìm đơn hàng bằng _tingee_order_id_ext đã lưu khi tạo link ở T6.1.
+		$orders = wc_get_orders(
+			array(
+				'limit'      => 1,
+				'meta_key'   => '_tingee_order_id_ext',  // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+				'meta_value' => $tingee_order_id,         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			)
+		);
+
+		if ( empty( $orders ) ) {
+			$this->log(
+				sprintf( 'Webhook Mode B orderId=%s: không tìm thấy đơn hàng.', $tingee_order_id ),
+				'warning'
+			);
+			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
+		}
+
+		/** @var WC_Order $order */
+		$order = $orders[0];
+
+		// Idempotency: kiểm tra webhook request ID này đã xử lý chưa.
+		if ( ! empty( $webhook_request_id ) ) {
+			$processed_webhooks = $order->get_meta( '_tingee_processed_webhooks_b' );
+			$processed_webhooks = is_array( $processed_webhooks ) ? $processed_webhooks : array();
+
+			if ( in_array( $webhook_request_id, $processed_webhooks, true ) ) {
+				$this->log(
+					sprintf( 'Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency).', $webhook_request_id ),
+					'info'
+				);
+				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Already processed.' ), 200 );
+			}
+		}
+
+		// Chỉ gạch nợ khi status = 'success' VÀ statusCode = '00'.
+		// Các status khác ('expired', 'canceled'): ghi note để admin biết, không làm gì thêm.
+		if ( 'success' !== $status || '00' !== $status_code ) {
+			$order->add_order_note(
+				sprintf(
+					/* translators: 1: status, 2: statusCode */
+					__( 'Tingee (Chế độ B) thông báo: trạng thái "%1$s" (statusCode: %2$s). Đơn không được thanh toán.', 'tingee-gateway' ),
+					$status,
+					$status_code
+				),
+				false
+			);
+			$order->save();
+
+			$this->log(
+				sprintf( 'Webhook Mode B orderId=%s: status=%s, statusCode=%s — không phải success.', $tingee_order_id, $status, $status_code ),
+				'info'
+			);
+			return new WP_REST_Response( array( 'code' => '00', 'message' => 'Status noted.' ), 200 );
+		}
+
+		// Đối soát số tiền: so paidAmount với amount đã lưu khi tạo link.
+		$expected_amount = (int) $order->get_meta( '_tingee_amount' );
+
+		if ( $received_amount >= $expected_amount && $expected_amount > 0 ) {
+			// Lưu idempotency key trước khi payment_complete (phòng lỗi giữa chừng).
+			if ( ! empty( $webhook_request_id ) ) {
+				$processed_webhooks   = $order->get_meta( '_tingee_processed_webhooks_b' );
+				$processed_webhooks   = is_array( $processed_webhooks ) ? $processed_webhooks : array();
+				$processed_webhooks[] = $webhook_request_id;
+				$order->update_meta_data( '_tingee_processed_webhooks_b', $processed_webhooks );
+				$order->save();
+			}
+
+			$order->add_order_note(
+				sprintf(
+					/* translators: 1: số tiền, 2: phương thức, 3: thời gian */
+					__( 'Tingee (Chế độ B) xác nhận thanh toán thành công. Số tiền: %1$s ₫. Phương thức: %2$s. Thời gian: %3$s.', 'tingee-gateway' ),
+					number_format( $received_amount, 0, ',', '.' ),
+					! empty( $payment_method ) ? $payment_method : '—',
+					! empty( $paid_at ) ? $paid_at : current_time( 'd/m/Y H:i:s' )
+				),
+				false
+			);
+
+			// payment_complete() dùng tingee_order_id làm transaction_id (billId có thể null trong Mode B).
+			$order->payment_complete( $tingee_order_id );
+
+			$this->log(
+				sprintf(
+					'Webhook Mode B orderId=%s: thanh toán thành công. Đơn #%d → Processing.',
+					$tingee_order_id,
+					$order->get_id()
+				),
+				'info'
+			);
+
+		} else {
+			$order->add_order_note(
+				sprintf(
+					/* translators: 1: số tiền nhận, 2: số tiền cần */
+					__( '[Cảnh báo] Tingee (Chế độ B) nhận THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Đơn giữ On-Hold — vui lòng xử lý thủ công.', 'tingee-gateway' ),
+					number_format( $received_amount, 0, ',', '.' ),
+					number_format( $expected_amount, 0, ',', '.' )
+				),
+				false
+			);
+			$order->save();
+
+			$this->log(
+				sprintf(
+					'Webhook Mode B orderId=%s: THIẾU TIỀN. Nhận %d / Cần %d. Đơn #%d giữ On-Hold.',
+					$tingee_order_id,
+					$received_amount,
+					$expected_amount,
+					$order->get_id()
+				),
+				'warning'
+			);
+		}
+
 		return new WP_REST_Response( array( 'code' => '00', 'message' => 'Success' ), 200 );
 	}
 

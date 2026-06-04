@@ -87,8 +87,8 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 ## GIAI ĐOẠN 6 — Chế độ B (Redirect Payment Gateway)
 
-- [ ] **T6.1** 🟡 Trong `process_payment`, nếu chế độ B: gọi API tạo **Checkout URL** (kèm `returnUrl`), trả redirect sang URL đó.
-- [ ] **T6.2** 🟡 Xử lý `returnUrl` khi khách quay về: hiển thị trạng thái (xác nhận cuối cùng vẫn dựa vào webhook).
+- [x] **T6.1** 🟡 Trong `process_payment`, nếu chế độ B: gọi API tạo **Checkout URL** (kèm `returnUrl`), trả redirect sang URL đó.
+- [x] **T6.2** 🟡 Xử lý `returnUrl` khi khách quay về: hiển thị trạng thái (xác nhận cuối cùng vẫn dựa vào webhook).
   - **DoD**: Đáp ứng acceptance "Luồng Chế độ B".
 
 ---
