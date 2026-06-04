@@ -18,6 +18,27 @@
 
 -->
 
+### 2026-06-04 — [Task T9.1] Viết readme.txt chuẩn WordPress.org
+
+- **Loại**: [Tài liệu] [Đóng gói]
+- **Mô tả**: Tạo `readme.txt` đúng định dạng WordPress.org với đầy đủ các section bắt buộc:
+  - Header: Contributors, Tags, Requires at least (5.6), Tested up to (6.8), PHP (7.2), Stable tag (1.0.0), WC requires/tested, License GPLv2.
+  - Short description (≤150 ký tự).
+  - `== Description ==`: Mô tả 2 chế độ tích hợp, liệt kê 9 tính năng chính.
+  - `== Installation ==`: Cả 2 cách cài (tự động qua WP admin + tải tay), hướng dẫn cấu hình 6 bước.
+  - `== Frequently Asked Questions ==`: 9 câu hỏi thường gặp bao gồm credential, webhook, static QR, thanh toán thiếu, bảo mật, Blocks, HPOS, sandbox/production, uninstall.
+  - `== Screenshots ==`: Mô tả 5 ảnh chụp màn hình.
+  - `== Changelog ==`: Mục 1.0.0 tóm tắt toàn bộ tính năng đã build.
+  - `== Upgrade Notice ==`: Mục 1.0.0.
+- **File thay đổi**: `readme.txt` (mới)
+- **Trạng thái DoD**: Đạt — cấu trúc đúng định dạng WP.org readme validator.
+- **Cần Cường kiểm tra**:
+  1. Paste nội dung `readme.txt` vào [WordPress.org Readme Validator](https://wordpress.org/plugins/about/validator/) để xác nhận không có lỗi parsing.
+  2. Kiểm tra field `Contributors:` — cần thay `heno` bằng **username WordPress.org thực tế** của bạn hoặc team.
+  3. Cập nhật `Tested up to:` khi bạn test trên phiên bản WordPress mới hơn.
+
+---
+
 ### YYYY-MM-DD — [Task T?.?] Tiêu đề ngắn
 - **Loại**: [Tính năng mới] / [Fix lỗi] / [Bảo mật] / ...
 - **Mô tả**: (làm gì, vì sao)

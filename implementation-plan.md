@@ -138,13 +138,12 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 
 - [x] **T8.1** 🟡 Ghi log webhook qua `WC_Logger`, mask secret.
 - [x] **T8.2** 🟡 Tạo file `.pot`, bản dịch Tiếng Việt; bọc mọi chuỗi trong hàm dịch.
-- [ ] **T8.3** 🟢 Tùy chọn tải xuống sản phẩm số (Thủ công/Tự động) như SePay.
 
 ---
 
 ## GIAI ĐOẠN 9 — Đóng gói & submit WordPress.org
 
-- [ ] **T9.1** 🔴 Viết `readme.txt` đúng chuẩn WP.org (header, Stable tag, Tested up to, Description, Installation, FAQ, Screenshots, Changelog).
+- [x] **T9.1** 🔴 Viết `readme.txt` đúng chuẩn WP.org (header, Stable tag, Tested up to, Description, Installation, FAQ, Screenshots, Changelog).
 - [ ] **T9.2** 🔴 Chạy **Plugin Check**, sửa hết lỗi blocking.
 - [ ] **T9.3** 🔴 Rà checklist bảo mật (CLAUDE.md mục 4) lần cuối; bỏ mọi secret cứng.
 - [ ] **T9.4** 🟡 Chuẩn bị assets WP.org: `icon-128x128.png`, `banner-772x250.png`, ảnh screenshot.
