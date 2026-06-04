@@ -8,6 +8,18 @@
 
 ### Giai đoạn 7 — Checkout Blocks & tương thích
 
+**T7.2** ✅ — Hardening CSS cross-theme (Storefront, Twenty Twenty-Four, Astra)
+
+- `assets/css/checkout.css`: cải thiện toàn diện để chống xung đột theme.
+  - Thêm `box-sizing: border-box` reset cho toàn bộ element trong `.tingee-payment-box`.
+  - `.tingee-payment-box__title (h2)`: reset `border` + `padding` (Storefront/Astra thêm border-bottom vào h2).
+  - `.tingee-payment-box__qr img`: fix `display: inline-block` (Storefront override `display: block` vào img).
+  - `.tingee-transfer-info th, td`: dùng `!important` cho `border`, `background`, `padding` — cần thiết vì TT4 dùng `td, th { border: 1px solid }` (selector quá rộng) và Storefront dùng `table td { border-top }`.
+  - Xóa `border-bottom` dòng cuối bảng.
+  - `.tingee-copy-btn`: reset mạnh toàn bộ button style (background, border, padding, font, box-shadow, letter-spacing) — mỗi theme style button khác nhau hoàn toàn.
+  - `.tingee-block-description`: thêm style mới cho mô tả trong Checkout Blocks (từ T7.1 blocks.js).
+  - Thêm responsive breakpoint `@media (max-width: 480px)`.
+
 **T7.1** ✅ — Tích hợp WooCommerce Checkout Blocks (`AbstractPaymentMethodType`)
 
 - `includes/class-tingee-blocks.php`: viết lại đầy đủ, extends `AbstractPaymentMethodType`.

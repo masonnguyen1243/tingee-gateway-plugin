@@ -447,14 +447,39 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'expireInMinute'  => 30,
 		);
 
+		// Kiểm tra sớm credentials — trước khi gọi API để hiện lỗi rõ ràng hơn.
+		$settings     = get_option( 'woocommerce_tingee_gateway_settings', array() );
+		$client_id    = isset( $settings['client_id'] ) ? $settings['client_id'] : '';
+		$secret_token = isset( $settings['secret_token'] ) ? $settings['secret_token'] : '';
+
+		if ( empty( $client_id ) || empty( $secret_token ) ) {
+			wc_add_notice(
+				__( 'Cổng thanh toán Tingee chưa cấu hình Client ID hoặc Secret Token. Vui lòng liên hệ quản trị viên.', 'tingee-gateway' ),
+				'error'
+			);
+			return array( 'result' => 'failure' );
+		}
+
 		// Gọi API Tingee tạo QR động.
 		$result = Tingee_API::create_dynamic_qr( $qr_params );
 
 		if ( ! $result['success'] ) {
-			wc_add_notice(
-				__( 'Không thể tạo mã QR thanh toán. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'tingee-gateway' ),
-				'error'
-			);
+			if ( 0 === $result['http_code'] ) {
+				// http_code = 0: lỗi cục bộ — không kết nối được hoặc cấu hình sai.
+				// Hiển thị thông báo cụ thể (vd: "Client ID chưa cấu hình", "cURL error"...).
+				wc_add_notice( esc_html( $result['message'] ), 'error' );
+			} else {
+				// Lỗi từ Tingee API (4xx/5xx) — chi tiết đã được ghi vào WooCommerce Logs.
+				// Vào WooCommerce → Trạng thái → Nhật ký → chọn nguồn "tingee-gateway" để xem.
+				wc_add_notice(
+					sprintf(
+						/* translators: %s: HTTP status code */
+						__( 'Tingee API trả lỗi (HTTP %s). Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'tingee-gateway' ),
+						esc_html( $result['http_code'] )
+					),
+					'error'
+				);
+			}
 			return array( 'result' => 'failure' );
 		}
 

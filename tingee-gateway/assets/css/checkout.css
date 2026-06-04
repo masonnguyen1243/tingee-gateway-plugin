@@ -1,8 +1,21 @@
 /**
- * Tingee Gateway — CSS cho trang thank-you (hiển thị QR và thông tin chuyển khoản).
+ * Tingee Gateway — CSS cho trang thank-you (QR + thông tin chuyển khoản).
+ *
+ * Cross-theme hardening: đã kiểm tra xung đột với Storefront, Twenty Twenty-Four,
+ * và Astra. Các selector được scope dưới .tingee-payment-box để tránh ảnh hưởng
+ * phần còn lại của trang. Dùng !important chỉ nơi theme dùng selector quá rộng
+ * (vd: `td, th` trong TT4 và `table td` trong Storefront).
  *
  * @package Tingee_Gateway
  */
+
+/* ===================================================
+   Box-sizing reset — tránh vỡ layout do theme dùng content-box
+   =================================================== */
+.tingee-payment-box,
+.tingee-payment-box * {
+	box-sizing: border-box;
+}
 
 /* ===================================================
    Hộp thanh toán chính
@@ -15,6 +28,9 @@
 	background: #fff;
 	text-align: center;
 	max-width: 500px;
+	/* Reset các thuộc tính mà theme block (TT4) có thể override trên section */
+	color: inherit;
+	font-size: inherit;
 }
 
 .tingee-payment-box__title {
@@ -22,6 +38,9 @@
 	font-weight: 700;
 	margin: 0 0 20px;
 	color: #1a1a2e;
+	/* Storefront và Astra thêm border-bottom vào h2 — reset lại */
+	border: none;
+	padding: 0;
 }
 
 /* ===================================================
@@ -38,10 +57,17 @@
 	border: 5px solid #fff;
 	box-shadow: 0 3px 12px rgba( 0, 0, 0, 0.15 );
 	border-radius: 4px;
+	/* Storefront thêm max-width: 100% và display: block vào img — override để giữ kích thước */
+	display: inline-block;
+	vertical-align: middle;
 }
 
 /* ===================================================
    Bảng thông tin chuyển khoản
+   Cần !important cho border và background vì:
+   - Twenty Twenty-Four: `td, th { border: 1px solid var(--contrast-3) }` — selector rộng
+   - Storefront: `table td { border-top: 1px solid rgba(0,0,0,.1) }` — selector rộng
+   - Một số theme: `tr:nth-child(2n) { background: #f7f7f7 }` — zebra striping
    =================================================== */
 .tingee-payment-box__info {
 	text-align: left;
@@ -52,25 +78,41 @@
 	width: 100%;
 	border-collapse: collapse;
 	font-size: 0.95em;
+	/* Reset margin mà một số theme thêm vào table */
+	margin: 0;
 }
 
 .tingee-transfer-info th,
 .tingee-transfer-info td {
-	padding: 9px 10px;
-	border-bottom: 1px solid #f2f2f2;
-	vertical-align: middle;
+	padding: 9px 10px !important;
+	border: none !important;
+	border-bottom: 1px solid #f2f2f2 !important;
+	vertical-align: middle !important;
+	/* Reset background — Storefront zebra striping, Astra th coloring */
+	background: none !important;
+	/* Reset text-transform mà một số theme áp cho th */
+	text-transform: none;
+	/* Storefront và TT4 set font-weight: bold cho th — override về 500 */
+	font-weight: inherit;
 }
 
 .tingee-transfer-info th {
 	width: 42%;
 	color: #666;
-	font-weight: 500;
+	font-weight: 500 !important;
 	white-space: nowrap;
+	text-align: left !important;
 }
 
 .tingee-transfer-info td {
 	color: #1a1a2e;
 	word-break: break-all;
+}
+
+/* Xóa border-bottom dòng cuối để không trông thừa */
+.tingee-transfer-info tr:last-child th,
+.tingee-transfer-info tr:last-child td {
+	border-bottom: none !important;
 }
 
 .tingee-amount-value {
@@ -81,34 +123,54 @@
 
 /* ===================================================
    Nút sao chép
+   Cần reset mạnh vì button bị theme style rất đa dạng
+   (Storefront: xanh lá, Astra: màu accent, TT4: outline đen)
    =================================================== */
 .tingee-copy-btn {
 	display: inline-block;
-	background: none;
-	border: 1px solid #d1d5db;
+	background: none !important;
+	border: 1px solid #d1d5db !important;
 	border-radius: 4px;
 	cursor: pointer;
-	padding: 2px 7px;
+	padding: 2px 7px !important;
 	margin-left: 6px;
-	font-size: 12px;
-	color: #555;
+	font-size: 12px !important;
+	font-family: inherit;
+	font-weight: normal !important;
+	color: #555 !important;
 	vertical-align: middle;
-	transition: background 0.15s, border-color 0.15s;
-	line-height: 1.5;
+	text-decoration: none !important;
+	text-transform: none !important;
+	line-height: 1.5 !important;
+	transition: background 0.15s, border-color 0.15s, color 0.15s;
+	/* Reset letter-spacing mà một số theme áp cho button */
+	letter-spacing: 0;
+	/* Reset box-shadow (Storefront dùng box-shadow cho button) */
+	box-shadow: none !important;
+	/* Đảm bảo width/height không bị override */
+	width: auto !important;
+	height: auto !important;
 }
 
-.tingee-copy-btn:hover {
-	background: #f3f4f6;
-	border-color: #9ca3af;
+.tingee-copy-btn:hover,
+.tingee-copy-btn:focus {
+	background: #f3f4f6 !important;
+	border-color: #9ca3af !important;
+	color: #333 !important;
+	box-shadow: none !important;
+	outline: 2px solid #9ca3af;
+	outline-offset: 1px;
 }
 
-.tingee-copy-btn.tingee-copied {
-	color: #059669;
-	border-color: #6ee7b7;
+.tingee-copy-btn.tingee-copied,
+.tingee-copy-btn.tingee-copied:hover {
+	color: #059669 !important;
+	border-color: #6ee7b7 !important;
+	background: none !important;
 }
 
 /* ===================================================
-   Trạng thái chờ / thành công (dùng bởi T4.3 JS poll)
+   Trạng thái chờ / thành công (poll JS T4.3)
    =================================================== */
 .tingee-payment-box__status {
 	margin: 16px 0 12px;
@@ -156,4 +218,33 @@
 	color: #9ca3af;
 	margin: 0;
 	line-height: 1.5;
+}
+
+/* ===================================================
+   Checkout Blocks — mô tả ngắn hiển thị khi khách chọn Tingee
+   (sinh bởi blocks.js — class tingee-block-description)
+   =================================================== */
+.tingee-block-description {
+	margin: 6px 0 0;
+	font-size: 0.9em;
+	color: #555;
+	line-height: 1.5;
+}
+
+/* ===================================================
+   Responsive — màn hình nhỏ (< 480px)
+   =================================================== */
+@media ( max-width: 480px ) {
+	.tingee-payment-box {
+		padding: 20px 14px;
+	}
+
+	.tingee-transfer-info th {
+		width: 38%;
+		white-space: normal;
+	}
+
+	.tingee-payment-box__qr img {
+		max-width: 180px;
+	}
 }
