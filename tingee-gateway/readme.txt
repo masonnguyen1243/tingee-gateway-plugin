@@ -2,7 +2,7 @@
 Contributors: heno
 Tags: payment, woocommerce, bank transfer, qr code, vietqr
 Requires at least: 5.6
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 7.2
 Stable tag: 1.0.0
 WC requires at least: 5.0
@@ -10,7 +10,7 @@ WC tested up to: 9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Integrate Tingee (by HENO) payment gateway into WooCommerce. Supports VietQR, automatic bank transfer confirmation via Webhook IPN, and Checkout Blocks.
+Integrate Tingee (by HENO) payment gateway into WooCommerce. Supports VietQR, bank transfer auto-confirmation via Webhook IPN, and Checkout Blocks.
 
 == Description ==
 

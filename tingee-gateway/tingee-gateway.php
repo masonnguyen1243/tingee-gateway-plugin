@@ -92,11 +92,12 @@ function tingee_woocommerce_missing_notice() {
 	<div class="notice notice-error">
 		<p>
 			<?php
+			$wc_link = '<a href="' . esc_url( admin_url( 'plugin-install.php?s=woocommerce&tab=search&type=term' ) ) . '">' . esc_html__( 'WooCommerce', 'tingee-gateway' ) . '</a>';
 			echo wp_kses_post(
 				sprintf(
 					/* translators: %s: WooCommerce plugin link */
-					__( '<strong>Tingee Gateway</strong> yêu cầu <a href="%s">WooCommerce</a> phải được cài đặt và kích hoạt.', 'tingee-gateway' ),
-					esc_url( admin_url( 'plugin-install.php?s=woocommerce&tab=search&type=term' ) )
+					__( '<strong>Tingee Gateway</strong> yêu cầu %s phải được cài đặt và kích hoạt.', 'tingee-gateway' ),
+					$wc_link
 				)
 			);
 			?>
@@ -290,16 +291,6 @@ function tingee_register_block_payment_method( $registry ) {
 
 // ---------------------------------------------------------------------------
 // 8. Nạp file dịch
+// WordPress 4.6+ tự động tải bản dịch từ translate.wordpress.org cho plugin
+// được host trên WordPress.org — không cần gọi load_plugin_textdomain() nữa.
 // ---------------------------------------------------------------------------
-add_action( 'init', 'tingee_load_textdomain' );
-
-/**
- * Nạp file dịch ngôn ngữ của plugin.
- */
-function tingee_load_textdomain() {
-	load_plugin_textdomain(
-		'tingee-gateway',
-		false,
-		dirname( plugin_basename( __FILE__ ) ) . '/languages/'
-	);
-}

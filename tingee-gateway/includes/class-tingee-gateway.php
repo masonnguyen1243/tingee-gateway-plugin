@@ -62,7 +62,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	 */
 	public $bank_name_display;
 
-/**
+	/**
 	 * Khởi tạo gateway — thiết lập ID, tiêu đề, mô tả, và đọc toàn bộ settings.
 	 */
 	public function __construct() {
@@ -211,10 +211,10 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'connection_section' => array(
 				'title'       => __( 'Kết nối Tingee', 'tingee-gateway' ),
 				'type'        => 'title',
-				/* translators: %s: link đến trang Developers Tingee */
 				'description' => sprintf(
-					__( 'Lấy Client ID và Secret Token tại <a href="%s" target="_blank" rel="noopener noreferrer">trang Developers của Tingee</a>.', 'tingee-gateway' ),
-					esc_url( 'https://app.tingee.vn/m/developers' )
+					/* translators: %s: link to Tingee Developers page */
+					__( 'Lấy Client ID và Secret Token tại %s.', 'tingee-gateway' ),
+					'<a href="' . esc_url( 'https://app.tingee.vn/m/developers' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'trang Developers của Tingee', 'tingee-gateway' ) . '</a>'
 				),
 			),
 
@@ -259,8 +259,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'bank_bin' => array(
 				'title'       => __( 'Mã BIN ngân hàng (bankBin)', 'tingee-gateway' ),
 				'type'        => 'text',
-				/* translators: examples of Vietnamese bank BIN codes */
-				'description' => __( 'Mã BIN của ngân hàng liên kết với tài khoản VA ở trên — bắt buộc để sinh QR động. Xem danh sách BIN trong tài liệu Tingee. Ví dụ: <code>970422</code> (MB Bank), <code>970436</code> (Vietcombank), <code>970415</code> (VietinBank).', 'tingee-gateway' ),
+				'description' => __( 'Mã BIN của ngân hàng liên kết với tài khoản VA ở trên — bắt buộc để sinh QR động. Xem danh sách BIN trong tài liệu Tingee. Ví dụ: 970422 (MB Bank), 970436 (Vietcombank), 970415 (VietinBank).', 'tingee-gateway' ),
 				'desc_tip'    => false,
 				'default'     => '',
 				'placeholder' => 'VD: 970422',
@@ -328,8 +327,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'integration_mode' => array(
 				'title'       => __( 'Chế độ tích hợp', 'tingee-gateway' ),
 				'type'        => 'select',
-				/* translators: thẻ strong để làm đậm tên chế độ */
-				'description' => __( '<strong>Chế độ A (khuyên dùng)</strong>: Hiển thị QR trực tiếp trên website, tự động xác nhận qua Webhook — khách không rời trang. <strong>Chế độ B</strong>: Chuyển hướng khách sang trang thanh toán của Tingee.', 'tingee-gateway' ),
+				'description' => __( 'Chế độ A (khuyên dùng): Hiển thị QR trực tiếp trên website, tự động xác nhận qua Webhook — khách không rời trang. Chế độ B: Chuyển hướng khách sang trang thanh toán của Tingee.', 'tingee-gateway' ),
 				'desc_tip'    => false,
 				'default'     => 'mode_a',
 				'options'     => array(

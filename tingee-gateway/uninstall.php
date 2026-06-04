@@ -17,10 +17,10 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 // Kiểm tra cờ "Giữ dữ liệu khi gỡ"
 // Nếu người dùng đã bật tùy chọn này trong cấu hình plugin → không xóa gì cả.
 // ---------------------------------------------------------------------------
-$gateway_settings = get_option( 'woocommerce_tingee_gateway_settings', array() );
-$keep_data        = isset( $gateway_settings['keep_data_on_uninstall'] ) ? $gateway_settings['keep_data_on_uninstall'] : 'no';
+$tingee_gateway_settings = get_option( 'woocommerce_tingee_gateway_settings', array() );
+$tingee_keep_data        = isset( $tingee_gateway_settings['keep_data_on_uninstall'] ) ? $tingee_gateway_settings['keep_data_on_uninstall'] : 'no';
 
-if ( 'yes' === $keep_data ) {
+if ( 'yes' === $tingee_keep_data ) {
 	// Người dùng muốn giữ dữ liệu → thoát, không xóa.
 	return;
 }

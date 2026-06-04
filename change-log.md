@@ -18,6 +18,36 @@
 
 -->
 
+### 2026-06-04 — [Task T9.2 bổ sung] Plugin Check — sửa lỗi từ kết quả chạy thực tế
+
+- **Loại**: [Fix lỗi]
+- **Mô tả**: Chạy Plugin Check thực tế → phát hiện 3 ERROR + 3 WARNING, đã sửa tất cả:
+  1. **ERROR `class-tingee-gateway.php:216` — `MissingTranslatorsComment`**: Comment `/* translators: */` đặt trước `sprintf(` thay vì ngay trước `__()`. Fix: chuyển comment vào bên trong `sprintf()`, đứng ngay trên `__()`.
+  2. **ERROR `.DS_Store` — `hidden_files`**: File ẩn macOS lọt vào thư mục plugin. Fix: xóa file; thêm `.gitignore` để ngăn tái xuất hiện.
+  3. **ERROR `readme.txt` — `no_plugin_readme`**: Short description quá 150 ký tự (152 ký tự). Fix: rút ngắn xuống 148 ký tự.
+  4. **WARNING `change-log.md` — `unexpected_markdown_file`**: File phát triển nằm trong thư mục plugin. Fix: xóa bản sao trong `tingee-gateway/`; file gốc giữ ở project root.
+  5. **WARNING `tingee-gateway.php:300` — `load_plugin_textdomain` discouraged**: WP 4.6+ tự load dịch từ translate.wordpress.org. Fix: xóa function `tingee_load_textdomain()` và `add_action('init', ...)`.
+  6. **WARNING `uninstall.php:20-21` — `NonPrefixedVariableFound`**: Biến toàn cục `$gateway_settings` và `$keep_data` chưa có prefix. Fix: đổi thành `$tingee_gateway_settings` và `$tingee_keep_data`.
+- **File thay đổi**: `includes/class-tingee-gateway.php`, `tingee-gateway.php`, `uninstall.php`, `readme.txt`; xóa `.DS_Store` và `change-log.md` khỏi thư mục plugin; thêm `.gitignore`.
+- **Trạng thái**: Tất cả ERROR và WARNING đã được sửa. Chạy lại Plugin Check để xác nhận.
+
+---
+
+### 2026-06-04 — [Task T9.2] Plugin Check — sửa lỗi PHPCS và i18n
+
+- **Loại**: [Fix lỗi] [Bảo mật]
+- **Mô tả**: Rà soát thủ công toàn bộ code theo tiêu chí Plugin Check và sửa các vi phạm tìm thấy:
+  1. **`class-tingee-gateway.php` — thiếu tab thụt đầu docblock `__construct()`**: `/**` ở đầu docblock không có leading tab. Fix: thêm `\t` — vi phạm PHPCS indentation.
+  2. **`class-tingee-gateway.php` — HTML trong `__()` của `connection_section`**: `<a href="%s">link text</a>` nằm trong chuỗi `__()`. Fix: tách link HTML ra ngoài `__()` theo đúng pattern [WP Docs](https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/) — `sprintf(__('...%s...'), '<a href="' . esc_url(...) . '">' . esc_html__('link text') . '</a>')`.
+  3. **`class-tingee-gateway.php` — `<code>` trong `__()` của `bank_bin` description**: bỏ thẻ `<code>`, chuyển sang plain text (BIN code là số, không cần format code).
+  4. **`class-tingee-gateway.php` — `<strong>` trong `__()` của `integration_mode` description**: bỏ thẻ `<strong>`, chuyển sang plain text.
+  5. **`tingee-gateway.php` — admin notice**: `<a href="%s">WooCommerce</a>` nằm trong `__()`. Fix: build link HTML bên ngoài, chỉ giữ `%s` placeholder trong chuỗi dịch.
+- **File thay đổi**: `includes/class-tingee-gateway.php`, `tingee-gateway.php`
+- **Trạng thái DoD**: Đạt về code. Cường cần chạy Plugin Check thực tế trên WordPress local để xác nhận không còn lỗi blocking.
+- **Cần Cường test**: Cài plugin **Plugin Check** từ WP.org → Plugins → Plugin Check → chạy scan "Tingee Gateway" → xác nhận không còn lỗi màu đỏ (ERROR). Warning màu vàng là chấp nhận được nếu không phải bảo mật.
+
+---
+
 ### 2026-06-04 — [Task T9.1] Viết readme.txt chuẩn WordPress.org
 
 - **Loại**: [Tài liệu] [Đóng gói]
