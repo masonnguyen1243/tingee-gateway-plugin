@@ -1,5 +1,23 @@
 # Change Log — Tingee Gateway
 
+## [1.1.1] — 2026-06-05
+
+### Bugfix: Webhook Static QR không khớp được đơn hàng khi ngân hàng/Tingee tự sinh nội dung CK
+
+**Vấn đề**:
+- Webhook từ Tingee đôi khi có trường `content` là chuỗi Tingee tự sinh (vd: `TKP#TGE60605173323VCB#...`) thay vì mã đơn hàng ta gửi lúc tạo QR → không khớp `_tingee_purpose` → đơn không được gạch nợ.
+- Một số giao dịch chuyển khoản trực tiếp vào VA không có `content` lẫn `billId` → log cảnh báo thiếu thông tin để đối soát thủ công.
+
+**Nguyên nhân gốc**: Logic khớp Static QR chỉ dựa vào exact-match `content` ↔ `_tingee_purpose`. Tingee/ngân hàng không đảm bảo trả về đúng chuỗi nội dung ta đặt trong QR.
+
+**Fix** (`includes/class-tingee-webhook.php`):
+- Cấu trúc lại `else` block (Static QR) thành 2 bước:
+  1. **Bước 1** (giữ nguyên): khớp chính xác `content` với `_tingee_purpose`.
+  2. **Bước 2 (fallback — mới)**: nếu bước 1 thất bại hoặc `content` rỗng, tìm đơn on-hold theo `_tingee_amount` + `payment_method` + `status`. Chỉ tự động xử lý khi có **đúng 1 đơn** khớp số tiền (tránh nhầm khi có nhiều đơn cùng giá).
+- Cải thiện log lỗi: thêm `transactionCode` và số tiền vào thông báo "không tìm được đơn" để dễ đối soát thủ công.
+
+---
+
 ## [1.1.0] — 2026-06-05
 
 ### Đơn giản hóa cấu hình: chỉ cần Client ID + Secret Token

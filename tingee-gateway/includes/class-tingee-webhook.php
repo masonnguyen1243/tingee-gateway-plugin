@@ -196,39 +196,73 @@ class Tingee_Webhook {
 			$order_identifier = 'billId=' . $bill_id;
 
 		} else {
-			// Static QR: không có billId → tìm qua nội dung chuyển khoản = mã đơn WC.
-			// Nếu khách sửa nội dung CK thì match sẽ thất bại — cần xử lý thủ công.
-			if ( empty( $transfer_content ) ) {
-				$this->log(
-					__( 'Webhook thiếu cả billId lẫn content — không thể xác định đơn hàng.', 'tingee-gateway' ),
-					'warning'
+			// Static QR: không có billId.
+			// Chiến lược khớp đơn (2 bước):
+			//   Bước 1: khớp chính xác $payload['content'] với _tingee_purpose đã lưu lúc tạo QR.
+			//   Bước 2 (fallback): nếu bước 1 thất bại hoặc content rỗng, khớp theo _tingee_amount.
+			//   Fallback chỉ áp dụng khi có đúng 1 đơn on-hold cùng số tiền — phòng trường hợp
+			//   ngân hàng/Tingee tự sinh nội dung CK (vd: "TKP#TGE...VCB#...") thay vì dùng
+			//   nội dung QR gốc, hoặc khách không điền nội dung CK.
+
+			$orders = array();
+
+			if ( ! empty( $transfer_content ) ) {
+				// Bước 1: khớp theo nội dung chuyển khoản.
+				$orders = wc_get_orders(
+					array(
+						'limit'          => 1,
+						'payment_method' => 'tingee_gateway',
+						'status'         => array( 'wc-on-hold' ),
+						'meta_key'       => '_tingee_purpose',   // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+						'meta_value'     => $transfer_content,    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+					)
 				);
-				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Ignored: no identifier.' ), 200 );
+				if ( ! empty( $orders ) ) {
+					$order_identifier = 'content=' . $transfer_content;
+				}
 			}
 
-			$orders = wc_get_orders(
-				array(
-					'limit'          => 1,
-					'payment_method' => 'tingee_gateway',
-					'status'         => array( 'wc-on-hold' ),
-					'meta_key'       => '_tingee_purpose',  // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-					'meta_value'     => $transfer_content,   // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				)
-			);
+			// Bước 2 (fallback): chưa tìm được đơn qua nội dung → thử theo số tiền.
+			if ( empty( $orders ) && $received_amount > 0 ) {
+				$fallback_orders = wc_get_orders(
+					array(
+						'limit'          => 2,    // tối đa 2 để phát hiện nhiều đơn cùng giá.
+						'payment_method' => 'tingee_gateway',
+						'status'         => array( 'wc-on-hold' ),
+						'meta_key'       => '_tingee_amount',    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+						'meta_value'     => $received_amount,     // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+					)
+				);
+
+				if ( 1 === count( $fallback_orders ) ) {
+					$orders           = $fallback_orders;
+					$order_identifier = 'amount_fallback=' . $received_amount;
+					$this->log(
+						sprintf(
+							/* translators: 1: nội dung CK hoặc "(trống)", 2: số tiền format, 3: order ID */
+							__( 'Webhook Static QR: nội dung CK "%1$s" không khớp _tingee_purpose — fallback khớp theo số tiền %2$s ₫, tìm thấy đơn #%3$d. Vui lòng xác nhận thủ công.', 'tingee-gateway' ),
+							! empty( $transfer_content ) ? $transfer_content : __( '(trống)', 'tingee-gateway' ),
+							number_format( $received_amount, 0, ',', '.' ),
+							$fallback_orders[0]->get_id()
+						),
+						'warning'
+					);
+				}
+			}
 
 			if ( empty( $orders ) ) {
 				$this->log(
 					sprintf(
-						/* translators: %s: nội dung chuyển khoản */
-						__( 'Webhook Static QR: không tìm được đơn on-hold nào với nội dung CK "%s". Khách có thể đã sửa nội dung CK — cần xử lý thủ công.', 'tingee-gateway' ),
-						$transfer_content
+						/* translators: 1: nội dung CK, 2: transaction code, 3: số tiền format */
+						__( 'Webhook Static QR: không tìm được đơn on-hold. Nội dung CK: "%1$s". transactionCode: %2$s. Số tiền: %3$s ₫. Cần đối soát thủ công.', 'tingee-gateway' ),
+						! empty( $transfer_content ) ? $transfer_content : __( '(trống)', 'tingee-gateway' ),
+						! empty( $transaction_code ) ? $transaction_code : 'N/A',
+						number_format( $received_amount, 0, ',', '.' )
 					),
 					'warning'
 				);
 				return new WP_REST_Response( array( 'code' => '00', 'message' => 'Order not found.' ), 200 );
 			}
-
-			$order_identifier = 'content=' . $transfer_content;
 		}
 
 		/** @var WC_Order $order */
