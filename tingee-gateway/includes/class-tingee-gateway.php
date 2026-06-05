@@ -55,12 +55,6 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 	 */
 	public $bank_name_short;
 
-	/**
-	 * Chế độ hiển thị tên NH: 'both' | 'full' | 'short' | 'none'.
-	 *
-	 * @var string
-	 */
-	public $bank_name_display;
 
 	/**
 	 * Khởi tạo gateway — thiết lập ID, tiêu đề, mô tả, và đọc toàn bộ settings.
@@ -103,10 +97,9 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		// BIN code ngân hàng VA.
 		$this->bank_bin = $this->get_option( 'bank_bin', '' );
 
-		// Tên ngân hàng và chế độ hiển thị.
-		$this->bank_name_full    = $this->get_option( 'bank_name_full', '' );
-		$this->bank_name_short   = $this->get_option( 'bank_name_short', '' );
-		$this->bank_name_display = $this->get_option( 'bank_name_display', 'both' );
+		// Tên ngân hàng — tự động điền từ Tingee API, không cần nhập tay.
+		$this->bank_name_full  = $this->get_option( 'bank_name_full', '' );
+		$this->bank_name_short = $this->get_option( 'bank_name_short', '' );
 
 		// Lưu settings khi admin nhấn nút "Save changes".
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -163,6 +156,10 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 					'testing'          => __( 'Đang kiểm tra...', 'tingee-gateway' ),
 					'fill_credentials' => __( 'Vui lòng nhập Client ID và Secret Token trước.', 'tingee-gateway' ),
 					'network_error'    => __( 'Lỗi kết nối mạng. Vui lòng thử lại.', 'tingee-gateway' ),
+					'loading_accounts' => __( 'Đang tải danh sách tài khoản...', 'tingee-gateway' ),
+					'select_account'   => __( 'Chọn tài khoản nhận tiền:', 'tingee-gateway' ),
+					'no_accounts'      => __( 'Không tìm thấy tài khoản nào. Hãy kiểm tra lại kết nối hoặc liên hệ Tingee.', 'tingee-gateway' ),
+					'account_status'   => __( 'Tài khoản đã chọn:', 'tingee-gateway' ),
 				),
 			)
 		);
@@ -247,22 +244,46 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'desc_tip'    => true,
 			),
 
+			// Nút kiểm tra kết nối — render bởi generate_test_connection_button_html().
+			// Đặt ngay sau secret_token để luồng tự nhiên: nhập credentials → test → chọn tài khoản.
+			'test_connection' => array(
+				'title'       => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
+				'type'        => 'test_connection_button',
+				'description' => __( 'Bấm để xác minh Client ID và Secret Token, đồng thời tải danh sách tài khoản VA của bạn trên Tingee.', 'tingee-gateway' ),
+			),
+
+			// Bộ chọn tài khoản VA — tự động điền sau khi test kết nối thành công.
+			// Render bởi generate_va_account_selector_html().
+			'va_account_selector' => array(
+				'title'       => __( 'Tài khoản nhận tiền', 'tingee-gateway' ),
+				'type'        => 'va_account_selector',
+				'description' => '',
+			),
+
+			// Các trường lưu dữ liệu tài khoản — không hiển thị trực tiếp (render bởi va_account_selector).
+			// WooCommerce vẫn lưu chúng khi form submit vì chúng xuất hiện dưới dạng hidden input.
 			'va_account_number' => array(
-				'title'       => __( 'Số tài khoản VA nhận tiền', 'tingee-gateway' ),
-				'type'        => 'text',
-				'description' => __( 'Số tài khoản ảo (Virtual Account — vaAccountNumber) của merchant trên Tingee. Dùng để hiển thị QR cho khách và nhận thanh toán. Lấy trong mục quản lý tài khoản tại app.tingee.vn.', 'tingee-gateway' ),
-				'desc_tip'    => false,
-				'default'     => '',
-				'placeholder' => 'VD: 9704000000000018',
+				'title'   => '',
+				'type'    => 'hidden_data',
+				'default' => '',
 			),
 
 			'bank_bin' => array(
-				'title'       => __( 'Mã BIN ngân hàng (bankBin)', 'tingee-gateway' ),
-				'type'        => 'text',
-				'description' => __( 'Mã BIN của ngân hàng liên kết với tài khoản VA ở trên — bắt buộc để sinh QR động. Xem danh sách BIN trong tài liệu Tingee. Ví dụ: 970422 (MB Bank), 970436 (Vietcombank), 970415 (VietinBank).', 'tingee-gateway' ),
-				'desc_tip'    => false,
-				'default'     => '',
-				'placeholder' => 'VD: 970422',
+				'title'   => '',
+				'type'    => 'hidden_data',
+				'default' => '',
+			),
+
+			'bank_name_full' => array(
+				'title'   => '',
+				'type'    => 'hidden_data',
+				'default' => '',
+			),
+
+			'bank_name_short' => array(
+				'title'   => '',
+				'type'    => 'hidden_data',
+				'default' => '',
 			),
 
 			// ================================================================
@@ -279,49 +300,6 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'title'       => __( 'URL Webhook', 'tingee-gateway' ),
 				'type'        => 'webhook_url_display',
 				'description' => '',
-			),
-
-			// ================================================================
-			// NHÓM 4 — Tên ngân hàng & hiển thị
-			// ================================================================
-
-			'bank_name_display' => array(
-				'title'   => __( 'Hiển thị tên ngân hàng', 'tingee-gateway' ),
-				'type'    => 'select',
-				'description' => __( 'Cách hiển thị tên ngân hàng trong bảng thông tin chuyển khoản trên trang thank-you.', 'tingee-gateway' ),
-				'desc_tip'    => true,
-				'default' => 'both',
-				'options' => array(
-					'both'  => __( 'Cả tên đầy đủ và viết tắt', 'tingee-gateway' ),
-					'full'  => __( 'Chỉ tên đầy đủ', 'tingee-gateway' ),
-					'short' => __( 'Chỉ tên viết tắt', 'tingee-gateway' ),
-					'none'  => __( 'Không hiển thị', 'tingee-gateway' ),
-				),
-			),
-
-			'bank_name_full' => array(
-				'title'       => __( 'Tên ngân hàng đầy đủ', 'tingee-gateway' ),
-				'type'        => 'text',
-				'description' => __( 'Ví dụ: Ngân hàng TMCP Quân đội', 'tingee-gateway' ),
-				'desc_tip'    => true,
-				'default'     => '',
-				'placeholder' => 'VD: Ngân hàng TMCP Quân đội',
-			),
-
-			'bank_name_short' => array(
-				'title'       => __( 'Tên ngân hàng viết tắt', 'tingee-gateway' ),
-				'type'        => 'text',
-				'description' => __( 'Ví dụ: MB Bank', 'tingee-gateway' ),
-				'desc_tip'    => true,
-				'default'     => '',
-				'placeholder' => 'VD: MB Bank',
-			),
-
-			// Nút kiểm tra kết nối — render bởi generate_test_connection_button_html().
-			'test_connection' => array(
-				'title'       => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
-				'type'        => 'test_connection_button',
-				'description' => __( 'Bấm để kiểm tra Client ID và Secret Token có hợp lệ không (chưa cần lưu).', 'tingee-gateway' ),
 			),
 
 			'integration_mode' => array(
@@ -394,6 +372,92 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		</tr>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Render HTML cho field type "va_account_selector" — bộ chọn tài khoản VA.
+	 *
+	 * Hiển thị:
+	 * - Tài khoản đã chọn (nếu đã cấu hình trước đó).
+	 * - Gợi ý nhấn "Test kết nối" để tải tài khoản (nếu chưa cấu hình).
+	 * - Container cho JS render danh sách accounts.
+	 * - 4 hidden inputs để lưu dữ liệu tài khoản khi form submit.
+	 *
+	 * @param string $key  Tên field.
+	 * @param array  $data Dữ liệu cấu hình field.
+	 * @return string HTML output.
+	 */
+	public function generate_va_account_selector_html( $key, $data ) {
+		$va_account_number = $this->get_option( 'va_account_number', '' );
+		$bank_bin          = $this->get_option( 'bank_bin', '' );
+		$bank_name_full    = $this->get_option( 'bank_name_full', '' );
+		$bank_name_short   = $this->get_option( 'bank_name_short', '' );
+
+		$va_key    = $this->get_field_key( 'va_account_number' );
+		$bin_key   = $this->get_field_key( 'bank_bin' );
+		$full_key  = $this->get_field_key( 'bank_name_full' );
+		$short_key = $this->get_field_key( 'bank_name_short' );
+
+		$bank_display = $bank_name_short ?: $bank_name_full;
+
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label><?php echo esc_html( $data['title'] ); ?></label>
+			</th>
+			<td class="forminp">
+				<div id="tingee-va-selector">
+					<?php if ( $va_account_number && $bank_bin ) : ?>
+						<div id="tingee-va-current" style="padding:8px 12px; background:#f0f6fc; border:1px solid #72aee6; border-radius:4px; display:inline-block; margin-bottom:8px;">
+							<span style="color:#0a3622; font-weight:600;">&#10003;</span>
+							<strong><?php echo esc_html( $bank_display ); ?></strong>
+							&mdash; <?php echo esc_html( $va_account_number ); ?>
+						</div>
+					<?php else : ?>
+						<p id="tingee-va-prompt" class="description">
+							<?php esc_html_e( 'Nhấn "Kiểm tra kết nối" ở trên để tải danh sách tài khoản VA từ Tingee.', 'tingee-gateway' ); ?>
+						</p>
+					<?php endif; ?>
+
+					<div id="tingee-va-accounts-list" style="display:none; margin-top:8px;"></div>
+				</div>
+
+				<input type="hidden"
+					id="<?php echo esc_attr( $va_key ); ?>"
+					name="<?php echo esc_attr( $va_key ); ?>"
+					value="<?php echo esc_attr( $va_account_number ); ?>">
+				<input type="hidden"
+					id="<?php echo esc_attr( $bin_key ); ?>"
+					name="<?php echo esc_attr( $bin_key ); ?>"
+					value="<?php echo esc_attr( $bank_bin ); ?>">
+				<input type="hidden"
+					id="<?php echo esc_attr( $full_key ); ?>"
+					name="<?php echo esc_attr( $full_key ); ?>"
+					value="<?php echo esc_attr( $bank_name_full ); ?>">
+				<input type="hidden"
+					id="<?php echo esc_attr( $short_key ); ?>"
+					name="<?php echo esc_attr( $short_key ); ?>"
+					value="<?php echo esc_attr( $bank_name_short ); ?>">
+			</td>
+		</tr>
+		<?php
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render HTML cho field type "hidden_data" — trả về chuỗi rỗng.
+	 *
+	 * Dữ liệu của các field này được lưu thông qua hidden inputs
+	 * bên trong generate_va_account_selector_html(). WooCommerce vẫn
+	 * đọc và lưu giá trị từ POST khi form submit.
+	 *
+	 * @param string $key  Tên field.
+	 * @param array  $data Dữ liệu cấu hình field.
+	 * @return string Chuỗi rỗng — không render gì cả.
+	 */
+	public function generate_hidden_data_html( $key, $data ) {
+		return '';
 	}
 
 	/**
@@ -721,23 +785,14 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		// Format số tiền theo kiểu Việt Nam: 150.000 ₫.
 		$amount_display = number_format( $amount, 0, ',', '.' ) . ' ₫';
 
-		// Tính chuỗi tên ngân hàng theo cài đặt admin.
+		// Tạo chuỗi tên ngân hàng từ dữ liệu auto-fetch — ưu tiên "đầy đủ (viết tắt)".
 		$bank_label = '';
-		switch ( $this->bank_name_display ) {
-			case 'full':
-				$bank_label = $this->bank_name_full;
-				break;
-			case 'short':
-				$bank_label = $this->bank_name_short;
-				break;
-			case 'both':
-				if ( $this->bank_name_full && $this->bank_name_short ) {
-					$bank_label = $this->bank_name_full . ' (' . $this->bank_name_short . ')';
-				} else {
-					$bank_label = $this->bank_name_full . $this->bank_name_short;
-				}
-				break;
-			// 'none': giữ nguyên chuỗi rỗng.
+		if ( $this->bank_name_full && $this->bank_name_short ) {
+			$bank_label = $this->bank_name_full . ' (' . $this->bank_name_short . ')';
+		} elseif ( $this->bank_name_short ) {
+			$bank_label = $this->bank_name_short;
+		} elseif ( $this->bank_name_full ) {
+			$bank_label = $this->bank_name_full;
 		}
 
 		// Nonce để JS poll trạng thái (dùng ở T4.3).

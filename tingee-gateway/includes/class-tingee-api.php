@@ -327,6 +327,29 @@ class Tingee_API {
 	}
 
 	/**
+	 * Lấy danh sách tài khoản VA đã liên kết của merchant trên Tingee.
+	 *
+	 * Endpoint: POST /v1/get-va-paging
+	 *
+	 * Response data: { totalCount, items: [ { vaAccountNumber, accountNumber, bankBin, accountName, status, ... } ] }
+	 *
+	 * Dùng để tự động điền thông tin tài khoản sau khi admin nhập Client ID + Secret Token.
+	 *
+	 * @param string $client_id    (tuỳ chọn) Ghi đè Client ID từ settings.
+	 * @param string $secret_token (tuỳ chọn) Ghi đè Secret Token từ settings.
+	 * @param int    $skip         Số bản ghi bỏ qua (phân trang). Mặc định 0.
+	 * @param int    $max          Số bản ghi tối đa trả về. Mặc định 50.
+	 * @return array Kết quả chuẩn hóa từ self::request(). $data có dạng { totalCount, items }.
+	 */
+	public static function get_va_accounts( $client_id = '', $secret_token = '', $skip = 0, $max = 50 ) {
+		$body = array(
+			'skipCount'      => (int) $skip,
+			'maxResultCount' => (int) $max,
+		);
+		return self::request( '/v1/get-va-paging', $body, 'POST', $client_id, $secret_token );
+	}
+
+	/**
 	 * Tạo QR động cho một đơn hàng — Chế độ A (QR + Webhook).
 	 *
 	 * Endpoint: POST /v1/generate-dynamic-qr

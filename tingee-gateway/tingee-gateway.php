@@ -218,7 +218,88 @@ function tingee_ajax_test_connection() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. AJAX handler: kiểm tra trạng thái đơn hàng (trang thank-you, T4.3)
+// 6. AJAX handler: lấy danh sách tài khoản VA từ Tingee
+// ---------------------------------------------------------------------------
+
+/**
+ * Đăng ký AJAX action lấy danh sách tài khoản VA — chỉ cho admin đã đăng nhập.
+ */
+add_action( 'wp_ajax_tingee_fetch_accounts', 'tingee_ajax_fetch_accounts' );
+
+/**
+ * Lấy danh sách tài khoản VA đã liên kết trên Tingee, kèm tên ngân hàng.
+ *
+ * Dùng cùng nonce với test_connection (tingee_test_connection_nonce).
+ * Trả về JSON { accounts: [ { vaAccountNumber, accountNumber, bankBin, accountName, bankFullName, bankShortName } ] }.
+ */
+function tingee_ajax_fetch_accounts() {
+	check_ajax_referer( 'tingee_test_connection_nonce', 'nonce' );
+
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Bạn không có quyền thực hiện thao tác này.', 'tingee-gateway' ) ) );
+	}
+
+	$client_id    = isset( $_POST['client_id'] ) ? sanitize_text_field( wp_unslash( $_POST['client_id'] ) ) : '';
+	$secret_token = isset( $_POST['secret_token'] ) ? sanitize_text_field( wp_unslash( $_POST['secret_token'] ) ) : '';
+
+	if ( empty( $client_id ) || empty( $secret_token ) ) {
+		wp_send_json_error( array( 'message' => __( 'Vui lòng nhập đầy đủ Client ID và Secret Token.', 'tingee-gateway' ) ) );
+	}
+
+	// Lấy danh sách VA accounts và banks song song (tuần tự trong PHP).
+	$accounts_result = Tingee_API::get_va_accounts( $client_id, $secret_token );
+	$banks_result    = Tingee_API::get_banks( $client_id, $secret_token );
+
+	if ( ! $accounts_result['success'] ) {
+		$msg = $accounts_result['message'] ? $accounts_result['message'] : __( 'Không thể lấy danh sách tài khoản từ Tingee.', 'tingee-gateway' );
+		wp_send_json_error( array( 'message' => $msg ) );
+	}
+
+	// Tạo map tra cứu tên ngân hàng theo BIN: [ bin => { name, shortName } ].
+	$banks_map = array();
+	if ( $banks_result['success'] && is_array( $banks_result['data'] ) ) {
+		foreach ( $banks_result['data'] as $bank ) {
+			if ( ! empty( $bank['bin'] ) ) {
+				$banks_map[ $bank['bin'] ] = array(
+					'name'      => isset( $bank['name'] ) ? $bank['name'] : '',
+					'shortName' => isset( $bank['shortName'] ) ? $bank['shortName'] : '',
+				);
+			}
+		}
+	}
+
+	// Response có dạng { totalCount, items } — lấy mảng items.
+	$items = array();
+	$data  = $accounts_result['data'];
+	if ( isset( $data['items'] ) && is_array( $data['items'] ) ) {
+		$items = $data['items'];
+	} elseif ( is_array( $data ) && ! isset( $data['totalCount'] ) ) {
+		// Fallback: nếu API trả về mảng phẳng.
+		$items = $data;
+	}
+
+	// Làm giàu dữ liệu account với tên ngân hàng.
+	$accounts = array();
+	foreach ( $items as $item ) {
+		$bin       = isset( $item['bankBin'] ) ? $item['bankBin'] : '';
+		$bank_info = isset( $banks_map[ $bin ] ) ? $banks_map[ $bin ] : array( 'name' => '', 'shortName' => '' );
+
+		$accounts[] = array(
+			'vaAccountNumber' => isset( $item['vaAccountNumber'] ) ? sanitize_text_field( $item['vaAccountNumber'] ) : '',
+			'accountNumber'   => isset( $item['accountNumber'] ) ? sanitize_text_field( $item['accountNumber'] ) : '',
+			'bankBin'         => sanitize_text_field( $bin ),
+			'accountName'     => isset( $item['accountName'] ) ? sanitize_text_field( $item['accountName'] ) : '',
+			'status'          => isset( $item['status'] ) ? sanitize_text_field( $item['status'] ) : '',
+			'bankFullName'    => sanitize_text_field( $bank_info['name'] ),
+			'bankShortName'   => sanitize_text_field( $bank_info['shortName'] ),
+		);
+	}
+
+	wp_send_json_success( array( 'accounts' => $accounts ) );
+}
+
+// ---------------------------------------------------------------------------
+// 7. AJAX handler: kiểm tra trạng thái đơn hàng (trang thank-you, T4.3)
 // ---------------------------------------------------------------------------
 
 /**
