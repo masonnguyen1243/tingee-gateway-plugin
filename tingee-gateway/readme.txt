@@ -145,8 +145,8 @@ This plugin connects to the **Tingee** payment API (operated by HENO) to generat
 
 By using this plugin, your store connects to Tingee's infrastructure. Please review Tingee's policies before going live:
 
-* [Terms of Service](https://tingee.vn/terms)
-* [Privacy Policy](https://tingee.vn/privacy)
+* [Terms of Service](https://drive.google.com/file/d/1snw0yOyz6hmanARQDWAX8DEMiG4r6Vmp/view)
+* [Privacy Policy](https://drive.google.com/file/d/1baa2tZPZvq9HK6w1Tzi2okAjdeo7bJhx/view)
 
 For developer documentation, visit [https://developers.tingee.vn](https://developers.tingee.vn).
 
