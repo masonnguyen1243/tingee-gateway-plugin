@@ -70,8 +70,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		$this->has_fields = false;
 
 		// Tiêu đề và mô tả hiển thị trong trang Settings WooCommerce (không phải trang checkout).
-		$this->method_title       = __( 'Tingee Gateway', 'tingee-gateway' );
-		$this->method_description = __( 'Thanh toán qua QR chuyển khoản ngân hàng sử dụng cổng Tingee (by HENO).', 'tingee-gateway' );
+		$this->method_title       = __( 'Tingee Gateway', 'heno-tingee-gateway-for-woocommerce' );
+		$this->method_description = __( 'Thanh toán qua QR chuyển khoản ngân hàng sử dụng cổng Tingee (by HENO).', 'heno-tingee-gateway-for-woocommerce' );
 
 		// Nạp các field cấu hình.
 		$this->init_form_fields();
@@ -85,8 +85,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		$this->enabled = $this->get_option( 'enabled' );
 
 		// Hiển thị ở trang checkout phía khách.
-		$this->title       = $this->get_option( 'title', __( 'Chuyển khoản ngân hàng (Tingee)', 'tingee-gateway' ) );
-		$this->description = $this->get_option( 'description', __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'tingee-gateway' ) );
+		$this->title       = $this->get_option( 'title', __( 'Chuyển khoản ngân hàng (Tingee)', 'heno-tingee-gateway-for-woocommerce' ) );
+		$this->description = $this->get_option( 'description', __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'heno-tingee-gateway-for-woocommerce' ) );
 
 		// Credentials và tài khoản VA.
 		$this->va_account_number = $this->get_option( 'va_account_number', '' );
@@ -152,14 +152,14 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'tingee_test_connection_nonce' ),
 				'i18n'    => array(
-					'test_btn'         => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
-					'testing'          => __( 'Đang kiểm tra...', 'tingee-gateway' ),
-					'fill_credentials' => __( 'Vui lòng nhập Client ID và Secret Token trước.', 'tingee-gateway' ),
-					'network_error'    => __( 'Lỗi kết nối mạng. Vui lòng thử lại.', 'tingee-gateway' ),
-					'loading_accounts' => __( 'Đang tải danh sách tài khoản...', 'tingee-gateway' ),
-					'select_account'   => __( 'Chọn tài khoản nhận tiền:', 'tingee-gateway' ),
-					'no_accounts'      => __( 'Không tìm thấy tài khoản nào. Hãy kiểm tra lại kết nối hoặc liên hệ Tingee.', 'tingee-gateway' ),
-					'account_status'   => __( 'Tài khoản đã chọn:', 'tingee-gateway' ),
+					'test_btn'         => __( 'Kiểm tra kết nối', 'heno-tingee-gateway-for-woocommerce' ),
+					'testing'          => __( 'Đang kiểm tra...', 'heno-tingee-gateway-for-woocommerce' ),
+					'fill_credentials' => __( 'Vui lòng nhập Client ID và Secret Token trước.', 'heno-tingee-gateway-for-woocommerce' ),
+					'network_error'    => __( 'Lỗi kết nối mạng. Vui lòng thử lại.', 'heno-tingee-gateway-for-woocommerce' ),
+					'loading_accounts' => __( 'Đang tải danh sách tài khoản...', 'heno-tingee-gateway-for-woocommerce' ),
+					'select_account'   => __( 'Chọn tài khoản nhận tiền:', 'heno-tingee-gateway-for-woocommerce' ),
+					'no_accounts'      => __( 'Không tìm thấy tài khoản nào. Hãy kiểm tra lại kết nối hoặc liên hệ Tingee.', 'heno-tingee-gateway-for-woocommerce' ),
+					'account_status'   => __( 'Tài khoản đã chọn:', 'heno-tingee-gateway-for-woocommerce' ),
 				),
 			)
 		);
@@ -180,25 +180,25 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			// ================================================================
 
 			'enabled' => array(
-				'title'   => __( 'Bật/Tắt', 'tingee-gateway' ),
+				'title'   => __( 'Bật/Tắt', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Bật Tingee Gateway', 'tingee-gateway' ),
+				'label'   => __( 'Bật Tingee Gateway', 'heno-tingee-gateway-for-woocommerce' ),
 				'default' => 'no',
 			),
 
 			'title' => array(
-				'title'       => __( 'Tiêu đề', 'tingee-gateway' ),
+				'title'       => __( 'Tiêu đề', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'text',
-				'description' => __( 'Tên phương thức thanh toán hiển thị cho khách hàng ở trang checkout.', 'tingee-gateway' ),
-				'default'     => __( 'Chuyển khoản ngân hàng (Tingee)', 'tingee-gateway' ),
+				'description' => __( 'Tên phương thức thanh toán hiển thị cho khách hàng ở trang checkout.', 'heno-tingee-gateway-for-woocommerce' ),
+				'default'     => __( 'Chuyển khoản ngân hàng (Tingee)', 'heno-tingee-gateway-for-woocommerce' ),
 				'desc_tip'    => true,
 			),
 
 			'description' => array(
-				'title'       => __( 'Mô tả', 'tingee-gateway' ),
+				'title'       => __( 'Mô tả', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'textarea',
-				'description' => __( 'Mô tả ngắn hiển thị khi khách chọn phương thức này.', 'tingee-gateway' ),
-				'default'     => __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'tingee-gateway' ),
+				'description' => __( 'Mô tả ngắn hiển thị khi khách chọn phương thức này.', 'heno-tingee-gateway-for-woocommerce' ),
+				'default'     => __( 'Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán.', 'heno-tingee-gateway-for-woocommerce' ),
 			),
 
 			// ================================================================
@@ -206,40 +206,40 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			// ================================================================
 
 			'connection_section' => array(
-				'title'       => __( 'Kết nối Tingee', 'tingee-gateway' ),
+				'title'       => __( 'Kết nối Tingee', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'title',
 				'description' => sprintf(
 					/* translators: %s: link to Tingee Developers page */
-					__( 'Lấy Client ID và Secret Token tại %s.', 'tingee-gateway' ),
-					'<a href="' . esc_url( 'https://app.tingee.vn/m/developers' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'trang Developers của Tingee', 'tingee-gateway' ) . '</a>'
+					__( 'Lấy Client ID và Secret Token tại %s.', 'heno-tingee-gateway-for-woocommerce' ),
+					'<a href="' . esc_url( 'https://app.tingee.vn/m/developers' ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'trang Developers của Tingee', 'heno-tingee-gateway-for-woocommerce' ) . '</a>'
 				),
 			),
 
 			'environment' => array(
-				'title'       => __( 'Môi trường', 'tingee-gateway' ),
+				'title'       => __( 'Môi trường', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'select',
-				'description' => __( 'Dùng Sandbox (UAT) để test, Production cho website thật.', 'tingee-gateway' ),
+				'description' => __( 'Dùng Sandbox (UAT) để test, Production cho website thật.', 'heno-tingee-gateway-for-woocommerce' ),
 				'desc_tip'    => true,
 				'default'     => 'production',
 				'options'     => array(
-					'production' => __( 'Production (thật)', 'tingee-gateway' ),
-					'sandbox'    => __( 'Sandbox / UAT (test)', 'tingee-gateway' ),
+					'production' => __( 'Production (thật)', 'heno-tingee-gateway-for-woocommerce' ),
+					'sandbox'    => __( 'Sandbox / UAT (test)', 'heno-tingee-gateway-for-woocommerce' ),
 				),
 			),
 
 			'client_id' => array(
-				'title'       => __( 'Client ID', 'tingee-gateway' ),
+				'title'       => __( 'Client ID', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'text',
-				'description' => __( 'Mã định danh đối tác do Tingee cung cấp. Header x-client-id trong mọi API request.', 'tingee-gateway' ),
+				'description' => __( 'Mã định danh đối tác do Tingee cung cấp. Header x-client-id trong mọi API request.', 'heno-tingee-gateway-for-woocommerce' ),
 				'default'     => '',
 				'desc_tip'    => true,
 				'placeholder' => 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
 			),
 
 			'secret_token' => array(
-				'title'       => __( 'Secret Token', 'tingee-gateway' ),
+				'title'       => __( 'Secret Token', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'password', // Ẩn giá trị như mật khẩu.
-				'description' => __( 'Khóa bí mật để sinh chữ ký HMAC-SHA512. Không chia sẻ cho bất kỳ ai.', 'tingee-gateway' ),
+				'description' => __( 'Khóa bí mật để sinh chữ ký HMAC-SHA512. Không chia sẻ cho bất kỳ ai.', 'heno-tingee-gateway-for-woocommerce' ),
 				'default'     => '',
 				'desc_tip'    => true,
 			),
@@ -247,15 +247,15 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			// Nút kiểm tra kết nối — render bởi generate_test_connection_button_html().
 			// Đặt ngay sau secret_token để luồng tự nhiên: nhập credentials → test → chọn tài khoản.
 			'test_connection' => array(
-				'title'       => __( 'Kiểm tra kết nối', 'tingee-gateway' ),
+				'title'       => __( 'Kiểm tra kết nối', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'test_connection_button',
-				'description' => __( 'Bấm để xác minh Client ID và Secret Token, đồng thời tải danh sách tài khoản VA của bạn trên Tingee.', 'tingee-gateway' ),
+				'description' => __( 'Bấm để xác minh Client ID và Secret Token, đồng thời tải danh sách tài khoản VA của bạn trên Tingee.', 'heno-tingee-gateway-for-woocommerce' ),
 			),
 
 			// Bộ chọn tài khoản VA — tự động điền sau khi test kết nối thành công.
 			// Render bởi generate_va_account_selector_html().
 			'va_account_selector' => array(
-				'title'       => __( 'Tài khoản nhận tiền', 'tingee-gateway' ),
+				'title'       => __( 'Tài khoản nhận tiền', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'va_account_selector',
 				'description' => '',
 			),
@@ -291,26 +291,26 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			// ================================================================
 
 			'webhook_section' => array(
-				'title' => __( 'Webhook IPN', 'tingee-gateway' ),
+				'title' => __( 'Webhook IPN', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'  => 'title',
-				'description' => __( 'Tingee sẽ gửi thông báo thanh toán về URL bên dưới. Hãy copy và điền vào trang Developers của Tingee.', 'tingee-gateway' ),
+				'description' => __( 'Tingee sẽ gửi thông báo thanh toán về URL bên dưới. Hãy copy và điền vào trang Developers của Tingee.', 'heno-tingee-gateway-for-woocommerce' ),
 			),
 
 			'webhook_url' => array(
-				'title'       => __( 'URL Webhook', 'tingee-gateway' ),
+				'title'       => __( 'URL Webhook', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'webhook_url_display',
 				'description' => '',
 			),
 
 			'integration_mode' => array(
-				'title'       => __( 'Chế độ tích hợp', 'tingee-gateway' ),
+				'title'       => __( 'Chế độ tích hợp', 'heno-tingee-gateway-for-woocommerce' ),
 				'type'        => 'select',
-				'description' => __( 'Chế độ A (khuyên dùng): Hiển thị QR trực tiếp trên website, tự động xác nhận qua Webhook — khách không rời trang. Chế độ B: Chuyển hướng khách sang trang thanh toán của Tingee.', 'tingee-gateway' ),
+				'description' => __( 'Chế độ A (khuyên dùng): Hiển thị QR trực tiếp trên website, tự động xác nhận qua Webhook — khách không rời trang. Chế độ B: Chuyển hướng khách sang trang thanh toán của Tingee.', 'heno-tingee-gateway-for-woocommerce' ),
 				'desc_tip'    => false,
 				'default'     => 'mode_a',
 				'options'     => array(
-					'mode_a' => __( 'Chế độ A — QR động + Webhook (khuyên dùng)', 'tingee-gateway' ),
-					'mode_b' => __( 'Chế độ B — Redirect sang trang Tingee', 'tingee-gateway' ),
+					'mode_a' => __( 'Chế độ A — QR động + Webhook (khuyên dùng)', 'heno-tingee-gateway-for-woocommerce' ),
+					'mode_b' => __( 'Chế độ B — Redirect sang trang Tingee', 'heno-tingee-gateway-for-woocommerce' ),
 				),
 			),
 
@@ -335,7 +335,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			</th>
 			<td class="forminp">
 				<button type="button" id="tingee-test-connection" class="button button-secondary">
-					<?php esc_html_e( 'Kiểm tra kết nối', 'tingee-gateway' ); ?>
+					<?php esc_html_e( 'Kiểm tra kết nối', 'heno-tingee-gateway-for-woocommerce' ); ?>
 				</button>
 				<span id="tingee-connection-result" style="display:none; margin-left:10px; padding:5px 10px; border-radius:3px;"></span>
 				<p class="description"><?php echo esc_html( $data['description'] ); ?></p>
@@ -359,14 +359,14 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		?>
 		<tr valign="top">
 			<th scope="row" class="titledesc">
-				<?php esc_html_e( 'URL Webhook', 'tingee-gateway' ); ?>
+				<?php esc_html_e( 'URL Webhook', 'heno-tingee-gateway-for-woocommerce' ); ?>
 			</th>
 			<td class="forminp">
 				<code style="display:inline-block; padding:6px 10px; background:#f6f7f7; border:1px solid #dcdcde; border-radius:3px; word-break:break-all; font-size:13px; user-select:all;">
 					<?php echo esc_url( $webhook_url ); ?>
 				</code>
 				<p class="description">
-					<?php esc_html_e( 'Copy URL này, vào trang Developers của Tingee → cấu hình Webhook → dán vào ô "Webhook URL".', 'tingee-gateway' ); ?>
+					<?php esc_html_e( 'Copy URL này, vào trang Developers của Tingee → cấu hình Webhook → dán vào ô "Webhook URL".', 'heno-tingee-gateway-for-woocommerce' ); ?>
 				</p>
 			</td>
 		</tr>
@@ -416,7 +416,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 						</div>
 					<?php else : ?>
 						<p id="tingee-va-prompt" class="description">
-							<?php esc_html_e( 'Nhấn "Kiểm tra kết nối" ở trên để tải danh sách tài khoản VA từ Tingee.', 'tingee-gateway' ); ?>
+							<?php esc_html_e( 'Nhấn "Kiểm tra kết nối" ở trên để tải danh sách tài khoản VA từ Tingee.', 'heno-tingee-gateway-for-woocommerce' ); ?>
 						</p>
 					<?php endif; ?>
 
@@ -487,7 +487,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		// Kiểm tra cấu hình bắt buộc để sinh QR.
 		if ( empty( $this->va_account_number ) || empty( $this->bank_bin ) ) {
 			wc_add_notice(
-				__( 'Cổng thanh toán Tingee chưa cấu hình đầy đủ (thiếu số VA hoặc mã BIN ngân hàng). Vui lòng liên hệ quản trị viên.', 'tingee-gateway' ),
+				__( 'Cổng thanh toán Tingee chưa cấu hình đầy đủ (thiếu số VA hoặc mã BIN ngân hàng). Vui lòng liên hệ quản trị viên.', 'heno-tingee-gateway-for-woocommerce' ),
 				'error'
 			);
 			return array( 'result' => 'failure' );
@@ -514,7 +514,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		if ( empty( $client_id ) || empty( $secret_token ) ) {
 			wc_add_notice(
-				__( 'Cổng thanh toán Tingee chưa cấu hình Client ID hoặc Secret Token. Vui lòng liên hệ quản trị viên.', 'tingee-gateway' ),
+				__( 'Cổng thanh toán Tingee chưa cấu hình Client ID hoặc Secret Token. Vui lòng liên hệ quản trị viên.', 'heno-tingee-gateway-for-woocommerce' ),
 				'error'
 			);
 			return array( 'result' => 'failure' );
@@ -534,7 +534,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				wc_add_notice(
 					sprintf(
 						/* translators: %s: HTTP status code */
-						__( 'Tingee API trả lỗi (HTTP %s). Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'tingee-gateway' ),
+						__( 'Tingee API trả lỗi (HTTP %s). Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'heno-tingee-gateway-for-woocommerce' ),
 						esc_html( $result['http_code'] )
 					),
 					'error'
@@ -559,7 +559,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'on-hold',
 			sprintf(
 				/* translators: %s: nội dung chuyển khoản (mã đơn hàng) */
-				__( 'Chờ thanh toán qua Tingee (Static QR). Nội dung chuyển khoản: %s', 'tingee-gateway' ),
+				__( 'Chờ thanh toán qua Tingee (Static QR). Nội dung chuyển khoản: %s', 'heno-tingee-gateway-for-woocommerce' ),
 				$purpose
 			)
 		);
@@ -606,7 +606,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 		$description = mb_substr(
 			sprintf(
 				/* translators: %s: mã đơn hàng WooCommerce */
-				__( 'Thanh toán đơn hàng %s', 'tingee-gateway' ),
+				__( 'Thanh toán đơn hàng %s', 'heno-tingee-gateway-for-woocommerce' ),
 				$order_num
 			),
 			0,
@@ -630,7 +630,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		if ( ! $result['success'] ) {
 			wc_add_notice(
-				__( 'Không thể tạo link thanh toán Tingee. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'tingee-gateway' ),
+				__( 'Không thể tạo link thanh toán Tingee. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.', 'heno-tingee-gateway-for-woocommerce' ),
 				'error'
 			);
 			return array( 'result' => 'failure' );
@@ -641,7 +641,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 		if ( empty( $checkout_url ) ) {
 			wc_add_notice(
-				__( 'Tingee trả về URL thanh toán không hợp lệ. Vui lòng thử lại.', 'tingee-gateway' ),
+				__( 'Tingee trả về URL thanh toán không hợp lệ. Vui lòng thử lại.', 'heno-tingee-gateway-for-woocommerce' ),
 				'error'
 			);
 			return array( 'result' => 'failure' );
@@ -657,7 +657,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			'on-hold',
 			sprintf(
 				/* translators: %s: orderId trong Tingee */
-				__( 'Chờ thanh toán qua Tingee (Chế độ B). Mã đơn Tingee: %s', 'tingee-gateway' ),
+				__( 'Chờ thanh toán qua Tingee (Chế độ B). Mã đơn Tingee: %s', 'heno-tingee-gateway-for-woocommerce' ),
 				$tingee_order_id
 			)
 		);
@@ -715,8 +715,8 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'i18n'    => array(
-					'paid'   => __( 'Thanh toán thành công! Đang chuyển hướng...', 'tingee-gateway' ),
-					'copied' => __( 'Đã sao chép', 'tingee-gateway' ),
+					'paid'   => __( 'Thanh toán thành công! Đang chuyển hướng...', 'heno-tingee-gateway-for-woocommerce' ),
+					'copied' => __( 'Đã sao chép', 'heno-tingee-gateway-for-woocommerce' ),
 				),
 			)
 		);
@@ -756,12 +756,12 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 				<div class="tingee-payment-box__status" id="tingee-payment-status">
 					<span class="tingee-status-waiting">
-						<?php esc_html_e( 'Đang xác nhận thanh toán từ Tingee...', 'tingee-gateway' ); ?>
+						<?php esc_html_e( 'Đang xác nhận thanh toán từ Tingee...', 'heno-tingee-gateway-for-woocommerce' ); ?>
 					</span>
 				</div>
 
 				<p class="tingee-payment-box__note">
-					<?php esc_html_e( 'Vui lòng đợi trong giây lát. Trang sẽ tự động cập nhật khi nhận được xác nhận.', 'tingee-gateway' ); ?>
+					<?php esc_html_e( 'Vui lòng đợi trong giây lát. Trang sẽ tự động cập nhật khi nhận được xác nhận.', 'heno-tingee-gateway-for-woocommerce' ); ?>
 				</p>
 
 			</section>
@@ -804,7 +804,7 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 			data-nonce="<?php echo esc_attr( $status_nonce ); ?>">
 
 			<h2 class="tingee-payment-box__title">
-				<?php esc_html_e( 'Quét mã QR để thanh toán', 'tingee-gateway' ); ?>
+				<?php esc_html_e( 'Quét mã QR để thanh toán', 'heno-tingee-gateway-for-woocommerce' ); ?>
 			</h2>
 
 			<div class="tingee-payment-box__qr">
@@ -813,17 +813,17 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 				// Tingee thường trả về dạng "data:image/png;base64,XXX" — phải dùng trực tiếp.
 				if ( 0 === strpos( $qr_code, 'http' ) ) {
 					echo '<img src="' . esc_url( $qr_code ) . '"'
-						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
+						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'heno-tingee-gateway-for-woocommerce' ) . '"'
 						. ' width="220" height="220" />';
 				} elseif ( 0 === strpos( $qr_code, 'data:' ) ) {
 					// Data URI đầy đủ — dùng trực tiếp, không thêm prefix.
 					echo '<img src="' . esc_attr( $qr_code ) . '"'
-						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
+						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'heno-tingee-gateway-for-woocommerce' ) . '"'
 						. ' width="220" height="220" />';
 				} else {
 					// Raw base64 thuần — thêm prefix data URI.
 					echo '<img src="data:image/png;base64,' . esc_attr( $qr_code ) . '"'
-						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'tingee-gateway' ) . '"'
+						. ' alt="' . esc_attr__( 'Mã QR thanh toán Tingee', 'heno-tingee-gateway-for-woocommerce' ) . '"'
 						. ' width="220" height="220" />';
 				}
 				?>
@@ -834,44 +834,44 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 					<tbody>
 						<?php if ( $bank_label ) : ?>
 						<tr>
-							<th><?php esc_html_e( 'Ngân hàng', 'tingee-gateway' ); ?></th>
+							<th><?php esc_html_e( 'Ngân hàng', 'heno-tingee-gateway-for-woocommerce' ); ?></th>
 							<td><?php echo esc_html( $bank_label ); ?></td>
 						</tr>
 						<?php endif; ?>
 						<tr>
-							<th><?php esc_html_e( 'Số tài khoản', 'tingee-gateway' ); ?></th>
+							<th><?php esc_html_e( 'Số tài khoản', 'heno-tingee-gateway-for-woocommerce' ); ?></th>
 							<td>
 								<span id="tingee-field-account"><?php echo esc_html( $qr_account ); ?></span>
 								<button type="button"
 									class="tingee-copy-btn"
 									data-copy-target="tingee-field-account"
-									aria-label="<?php esc_attr_e( 'Sao chép số tài khoản', 'tingee-gateway' ); ?>">
-									<?php esc_html_e( 'Sao chép', 'tingee-gateway' ); ?>
+									aria-label="<?php esc_attr_e( 'Sao chép số tài khoản', 'heno-tingee-gateway-for-woocommerce' ); ?>">
+									<?php esc_html_e( 'Sao chép', 'heno-tingee-gateway-for-woocommerce' ); ?>
 								</button>
 							</td>
 						</tr>
 						<tr>
-							<th><?php esc_html_e( 'Số tiền', 'tingee-gateway' ); ?></th>
+							<th><?php esc_html_e( 'Số tiền', 'heno-tingee-gateway-for-woocommerce' ); ?></th>
 							<td>
 								<span id="tingee-field-amount-raw" class="tingee-amount-value"><?php echo esc_html( $amount_display ); ?></span>
 								<span id="tingee-field-amount" style="display:none;"><?php echo esc_html( $amount ); ?></span>
 								<button type="button"
 									class="tingee-copy-btn"
 									data-copy-target="tingee-field-amount"
-									aria-label="<?php esc_attr_e( 'Sao chép số tiền', 'tingee-gateway' ); ?>">
-									<?php esc_html_e( 'Sao chép', 'tingee-gateway' ); ?>
+									aria-label="<?php esc_attr_e( 'Sao chép số tiền', 'heno-tingee-gateway-for-woocommerce' ); ?>">
+									<?php esc_html_e( 'Sao chép', 'heno-tingee-gateway-for-woocommerce' ); ?>
 								</button>
 							</td>
 						</tr>
 						<tr>
-							<th><?php esc_html_e( 'Nội dung chuyển khoản', 'tingee-gateway' ); ?></th>
+							<th><?php esc_html_e( 'Nội dung chuyển khoản', 'heno-tingee-gateway-for-woocommerce' ); ?></th>
 							<td>
 								<span id="tingee-field-purpose"><?php echo esc_html( $purpose ); ?></span>
 								<button type="button"
 									class="tingee-copy-btn"
 									data-copy-target="tingee-field-purpose"
-									aria-label="<?php esc_attr_e( 'Sao chép nội dung', 'tingee-gateway' ); ?>">
-									<?php esc_html_e( 'Sao chép', 'tingee-gateway' ); ?>
+									aria-label="<?php esc_attr_e( 'Sao chép nội dung', 'heno-tingee-gateway-for-woocommerce' ); ?>">
+									<?php esc_html_e( 'Sao chép', 'heno-tingee-gateway-for-woocommerce' ); ?>
 								</button>
 							</td>
 						</tr>
@@ -881,12 +881,12 @@ class Tingee_Gateway extends WC_Payment_Gateway {
 
 			<div class="tingee-payment-box__status" id="tingee-payment-status">
 				<span class="tingee-status-waiting">
-					<?php esc_html_e( 'Đang chờ xác nhận thanh toán...', 'tingee-gateway' ); ?>
+					<?php esc_html_e( 'Đang chờ xác nhận thanh toán...', 'heno-tingee-gateway-for-woocommerce' ); ?>
 				</span>
 			</div>
 
 			<p class="tingee-payment-box__note">
-				<?php esc_html_e( 'Trang sẽ tự động cập nhật khi nhận được xác nhận thanh toán.', 'tingee-gateway' ); ?>
+				<?php esc_html_e( 'Trang sẽ tự động cập nhật khi nhận được xác nhận thanh toán.', 'heno-tingee-gateway-for-woocommerce' ); ?>
 			</p>
 
 		</section>

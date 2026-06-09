@@ -1,5 +1,5 @@
-=== Tingee Gateway for WooCommerce ===
-Contributors: heno
+=== HENO Tingee Gateway for WooCommerce ===
+Contributors: heno, cuongnguyenba
 Tags: payment, woocommerce, bank transfer, qr code, vietqr
 Requires at least: 5.6
 Tested up to: 7.0
@@ -14,7 +14,7 @@ Integrate Tingee (by HENO) payment gateway into WooCommerce. Supports VietQR, ba
 
 == Description ==
 
-**Tingee Gateway for WooCommerce** connects your WooCommerce store to the [Tingee](https://tingee.vn) payment infrastructure by HENO, allowing customers to pay via bank transfer (VietQR) with **automatic order confirmation** — no manual reconciliation needed.
+**HENO Tingee Gateway for WooCommerce** connects your WooCommerce store to the [Tingee](https://tingee.vn) payment infrastructure by HENO, allowing customers to pay via bank transfer (VietQR) with **automatic order confirmation** — no manual reconciliation needed.
 
 = How it works =
 
@@ -58,7 +58,7 @@ Integrate Tingee (by HENO) payment gateway into WooCommerce. Supports VietQR, ba
 
 1. Log in to your WordPress admin panel.
 2. Go to **Plugins > Add New**.
-3. Search for **Tingee Gateway for WooCommerce**.
+3. Search for **HENO Tingee Gateway for WooCommerce**.
 4. Click **Install Now**, then **Activate**.
 
 = Manual installation =
@@ -123,6 +123,32 @@ No. The **Environment** setting applies globally. Switch to Production only when
 = Will my settings be deleted if I deactivate the plugin? =
 
 No. Settings are preserved when you deactivate. They are only removed when you **delete** the plugin, and only if the "Delete data on uninstall" option is enabled in settings.
+
+== External Services ==
+
+This plugin connects to the **Tingee** payment API (operated by HENO) to generate QR codes, create payment links, and verify Webhook (IPN) notifications when a payment is completed.
+
+**Data sent to Tingee:**
+
+* Order amount, order ID, and transfer reference — sent when creating a payment QR or checkout URL.
+* No customer personal data (name, email, address) is forwarded to the Tingee API by this plugin.
+
+**When data is sent:**
+
+* When the customer places an order and clicks "Pay" — the plugin calls the Tingee API to generate a QR code or hosted payment URL.
+* When Tingee sends a Webhook to your site (this is *incoming* data from Tingee, not outgoing).
+
+**Tingee API endpoints used:**
+
+* Production: `https://open-api.tingee.vn`
+* Sandbox (UAT): `https://uat-open-api.tingee.vn`
+
+By using this plugin, your store connects to Tingee's infrastructure. Please review Tingee's policies before going live:
+
+* [Terms of Service](https://tingee.vn/terms)
+* [Privacy Policy](https://tingee.vn/privacy)
+
+For developer documentation, visit [https://developers.tingee.vn](https://developers.tingee.vn).
 
 == Screenshots ==
 

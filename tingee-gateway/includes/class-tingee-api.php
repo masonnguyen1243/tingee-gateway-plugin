@@ -153,7 +153,7 @@ class Tingee_API {
 				'success'      => false,
 				'data'         => array(),
 				'tingee_code'  => '',
-				'message'      => __( 'Client ID hoặc Secret Token chưa được cấu hình.', 'tingee-gateway' ),
+				'message'      => __( 'Client ID hoặc Secret Token chưa được cấu hình.', 'heno-tingee-gateway-for-woocommerce' ),
 				'http_code'    => 0,
 			);
 		}
@@ -169,7 +169,7 @@ class Tingee_API {
 				'success'      => false,
 				'data'         => array(),
 				'tingee_code'  => '',
-				'message'      => __( 'Không thể encode body thành JSON.', 'tingee-gateway' ),
+				'message'      => __( 'Không thể encode body thành JSON.', 'heno-tingee-gateway-for-woocommerce' ),
 				'http_code'    => 0,
 			);
 		}
@@ -206,7 +206,7 @@ class Tingee_API {
 			self::log(
 				sprintf(
 					/* translators: 1: HTTP method, 2: endpoint, 3: error message */
-					__( 'Tingee API lỗi mạng [%1$s %2$s]: %3$s', 'tingee-gateway' ),
+					__( 'Tingee API lỗi mạng [%1$s %2$s]: %3$s', 'heno-tingee-gateway-for-woocommerce' ),
 					strtoupper( $method ),
 					$endpoint,
 					$response->get_error_message()
@@ -236,7 +236,7 @@ class Tingee_API {
 				'tingee_code'  => '',
 				'message'      => sprintf(
 					/* translators: 1: HTTP code, 2: raw body (truncated) */
-					__( 'Phản hồi không phải JSON hợp lệ (HTTP %1$d): %2$s', 'tingee-gateway' ),
+					__( 'Phản hồi không phải JSON hợp lệ (HTTP %1$d): %2$s', 'heno-tingee-gateway-for-woocommerce' ),
 					$http_code,
 					esc_html( substr( $body_raw, 0, 300 ) )
 				),
@@ -275,7 +275,7 @@ class Tingee_API {
 			self::log(
 				sprintf(
 					/* translators: 1: endpoint, 2: HTTP code, 3: Tingee code, 4: message */
-					__( 'Tingee API lỗi [%1$s] HTTP=%2$d code=%3$s: %4$s', 'tingee-gateway' ),
+					__( 'Tingee API lỗi [%1$s] HTTP=%2$d code=%3$s: %4$s', 'heno-tingee-gateway-for-woocommerce' ),
 					$endpoint,
 					$http_code,
 					$tingee_code,
@@ -287,7 +287,7 @@ class Tingee_API {
 			self::log(
 				sprintf(
 					/* translators: 1: HTTP method, 2: endpoint, 3: HTTP code */
-					__( 'Tingee API thành công [%1$s %2$s] HTTP=%3$d', 'tingee-gateway' ),
+					__( 'Tingee API thành công [%1$s %2$s] HTTP=%3$d', 'heno-tingee-gateway-for-woocommerce' ),
 					strtoupper( $method ),
 					$endpoint,
 					$http_code
@@ -459,7 +459,7 @@ class Tingee_API {
 	 */
 	private static function log( $message, $level = 'error' ) {
 		if ( function_exists( 'wc_get_logger' ) ) {
-			wc_get_logger()->log( $level, $message, array( 'source' => 'tingee-gateway' ) );
+			wc_get_logger()->log( $level, $message, array( 'source' => 'heno-tingee-gateway-for-woocommerce' ) );
 		}
 	}
 

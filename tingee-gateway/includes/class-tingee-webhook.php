@@ -82,7 +82,7 @@ class Tingee_Webhook {
 
 		if ( empty( $secret_token ) ) {
 			$this->log(
-				__( 'Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → Settings → Payments → Tingee để điền Secret Token.', 'tingee-gateway' ),
+				__( 'Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → Settings → Payments → Tingee để điền Secret Token.', 'heno-tingee-gateway-for-woocommerce' ),
 				'error'
 			);
 			return new WP_REST_Response( array( 'error' => 'Gateway not configured.' ), 500 );
@@ -94,7 +94,7 @@ class Tingee_Webhook {
 
 		if ( empty( $timestamp ) || empty( $signature ) ) {
 			$this->log(
-				__( 'Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-signature.', 'tingee-gateway' ),
+				__( 'Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-signature.', 'heno-tingee-gateway-for-woocommerce' ),
 				'error'
 			);
 			return new WP_REST_Response( array( 'error' => 'Missing required headers.' ), 401 );
@@ -105,7 +105,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: %s: 4 ký tự đầu của signature nhận được */
-					__( 'Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s', 'tingee-gateway' ),
+					__( 'Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s', 'heno-tingee-gateway-for-woocommerce' ),
 					Tingee_API::mask_secret( $signature )
 				),
 				'error'
@@ -117,7 +117,7 @@ class Tingee_Webhook {
 		$this->log(
 			sprintf(
 				/* translators: 1: IP address của server Tingee, 2: timestamp từ header */
-				__( 'Webhook hợp lệ nhận được. IP: %1$s. Timestamp: %2$s.', 'tingee-gateway' ),
+				__( 'Webhook hợp lệ nhận được. IP: %1$s. Timestamp: %2$s.', 'heno-tingee-gateway-for-woocommerce' ),
 				$request->get_header( 'x-real-ip' ),
 				$timestamp
 			),
@@ -130,7 +130,7 @@ class Tingee_Webhook {
 
 		$payload = json_decode( $raw_body, true );
 		if ( ! is_array( $payload ) ) {
-			$this->log( __( 'Webhook payload không hợp lệ (không phải JSON object).', 'tingee-gateway' ), 'error' );
+			$this->log( __( 'Webhook payload không hợp lệ (không phải JSON object).', 'heno-tingee-gateway-for-woocommerce' ), 'error' );
 			return new WP_REST_Response( array( 'error' => 'Invalid payload.' ), 400 );
 		}
 
@@ -185,7 +185,7 @@ class Tingee_Webhook {
 				$this->log(
 					sprintf(
 						/* translators: %s: billId từ Tingee */
-						__( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng.', 'tingee-gateway' ),
+						__( 'Webhook billId=%s: không tìm thấy đơn hàng tương ứng.', 'heno-tingee-gateway-for-woocommerce' ),
 						$bill_id
 					),
 					'warning'
@@ -240,8 +240,8 @@ class Tingee_Webhook {
 					$this->log(
 						sprintf(
 							/* translators: 1: nội dung CK hoặc "(trống)", 2: số tiền format, 3: order ID */
-							__( 'Webhook Static QR: nội dung CK "%1$s" không khớp _tingee_purpose — fallback khớp theo số tiền %2$s ₫, tìm thấy đơn #%3$d. Vui lòng xác nhận thủ công.', 'tingee-gateway' ),
-							! empty( $transfer_content ) ? $transfer_content : __( '(trống)', 'tingee-gateway' ),
+							__( 'Webhook Static QR: nội dung CK "%1$s" không khớp _tingee_purpose — fallback khớp theo số tiền %2$s ₫, tìm thấy đơn #%3$d. Vui lòng xác nhận thủ công.', 'heno-tingee-gateway-for-woocommerce' ),
+							! empty( $transfer_content ) ? $transfer_content : __( '(trống)', 'heno-tingee-gateway-for-woocommerce' ),
 							number_format( $received_amount, 0, ',', '.' ),
 							$fallback_orders[0]->get_id()
 						),
@@ -254,8 +254,8 @@ class Tingee_Webhook {
 				$this->log(
 					sprintf(
 						/* translators: 1: nội dung CK, 2: transaction code, 3: số tiền format */
-						__( 'Webhook Static QR: không tìm được đơn on-hold. Nội dung CK: "%1$s". transactionCode: %2$s. Số tiền: %3$s ₫. Cần đối soát thủ công.', 'tingee-gateway' ),
-						! empty( $transfer_content ) ? $transfer_content : __( '(trống)', 'tingee-gateway' ),
+						__( 'Webhook Static QR: không tìm được đơn on-hold. Nội dung CK: "%1$s". transactionCode: %2$s. Số tiền: %3$s ₫. Cần đối soát thủ công.', 'heno-tingee-gateway-for-woocommerce' ),
+						! empty( $transfer_content ) ? $transfer_content : __( '(trống)', 'heno-tingee-gateway-for-woocommerce' ),
 						! empty( $transaction_code ) ? $transaction_code : 'N/A',
 						number_format( $received_amount, 0, ',', '.' )
 					),
@@ -280,7 +280,7 @@ class Tingee_Webhook {
 				$this->log(
 					sprintf(
 						/* translators: 1: order identifier (billId=... hoặc content=...), 2: transaction code */
-						__( 'Webhook Mode A %1$s transactionCode=%2$s: đã xử lý trước đó, bỏ qua (idempotency).', 'tingee-gateway' ),
+						__( 'Webhook Mode A %1$s transactionCode=%2$s: đã xử lý trước đó, bỏ qua (idempotency).', 'heno-tingee-gateway-for-woocommerce' ),
 						$order_identifier,
 						$transaction_code
 					),
@@ -310,7 +310,7 @@ class Tingee_Webhook {
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: số tiền nhận, 2: mã giao dịch, 3: nội dung CK, 4: thời gian GD */
-					__( 'Tingee xác nhận thanh toán thành công. Số tiền: %1$s ₫. Mã GD: %2$s. Nội dung: %3$s. Thời gian GD: %4$s.', 'tingee-gateway' ),
+					__( 'Tingee xác nhận thanh toán thành công. Số tiền: %1$s ₫. Mã GD: %2$s. Nội dung: %3$s. Thời gian GD: %4$s.', 'heno-tingee-gateway-for-woocommerce' ),
 					number_format( $received_amount, 0, ',', '.' ),
 					! empty( $transaction_code ) ? $transaction_code : '—',
 					! empty( $transfer_content ) ? $transfer_content : '—',
@@ -324,7 +324,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: 1: order identifier, 2: transaction code, 3: WooCommerce order ID */
-					__( 'Webhook Mode A %1$s transactionCode=%2$s: thanh toán thành công. Đơn #%3$d → Processing.', 'tingee-gateway' ),
+					__( 'Webhook Mode A %1$s transactionCode=%2$s: thanh toán thành công. Đơn #%3$d → Processing.', 'heno-tingee-gateway-for-woocommerce' ),
 					$order_identifier,
 					! empty( $transaction_code ) ? $transaction_code : 'N/A',
 					$order->get_id()
@@ -336,7 +336,7 @@ class Tingee_Webhook {
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: số tiền nhận, 2: số tiền cần, 3: mã giao dịch */
-					__( '[Cảnh báo] Tingee nhận thanh toán THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Mã GD: %3$s. Đơn giữ On-Hold — vui lòng xử lý thủ công.', 'tingee-gateway' ),
+					__( '[Cảnh báo] Tingee nhận thanh toán THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Mã GD: %3$s. Đơn giữ On-Hold — vui lòng xử lý thủ công.', 'heno-tingee-gateway-for-woocommerce' ),
 					number_format( $received_amount, 0, ',', '.' ),
 					number_format( $expected_amount, 0, ',', '.' ),
 					! empty( $transaction_code ) ? $transaction_code : '—'
@@ -348,7 +348,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: 1: order identifier, 2: received amount, 3: expected amount, 4: WooCommerce order ID */
-					__( 'Webhook Mode A %1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold.', 'tingee-gateway' ),
+					__( 'Webhook Mode A %1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold.', 'heno-tingee-gateway-for-woocommerce' ),
 					$order_identifier,
 					$received_amount,
 					$expected_amount,
@@ -407,7 +407,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: %s: Tingee order ID */
-					__( 'Webhook Mode B orderId=%s: không tìm thấy đơn hàng.', 'tingee-gateway' ),
+					__( 'Webhook Mode B orderId=%s: không tìm thấy đơn hàng.', 'heno-tingee-gateway-for-woocommerce' ),
 					$tingee_order_id
 				),
 				'warning'
@@ -427,7 +427,7 @@ class Tingee_Webhook {
 				$this->log(
 					sprintf(
 						/* translators: %s: webhook request ID */
-						__( 'Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency).', 'tingee-gateway' ),
+						__( 'Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency).', 'heno-tingee-gateway-for-woocommerce' ),
 						$webhook_request_id
 					),
 					'info'
@@ -442,7 +442,7 @@ class Tingee_Webhook {
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: status, 2: statusCode */
-					__( 'Tingee (Chế độ B) thông báo: trạng thái "%1$s" (statusCode: %2$s). Đơn không được thanh toán.', 'tingee-gateway' ),
+					__( 'Tingee (Chế độ B) thông báo: trạng thái "%1$s" (statusCode: %2$s). Đơn không được thanh toán.', 'heno-tingee-gateway-for-woocommerce' ),
 					$status,
 					$status_code
 				),
@@ -453,7 +453,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: 1: Tingee order ID, 2: status, 3: statusCode */
-					__( 'Webhook Mode B orderId=%1$s: status=%2$s, statusCode=%3$s — không phải success.', 'tingee-gateway' ),
+					__( 'Webhook Mode B orderId=%1$s: status=%2$s, statusCode=%3$s — không phải success.', 'heno-tingee-gateway-for-woocommerce' ),
 					$tingee_order_id,
 					$status,
 					$status_code
@@ -479,7 +479,7 @@ class Tingee_Webhook {
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: số tiền, 2: phương thức, 3: thời gian */
-					__( 'Tingee (Chế độ B) xác nhận thanh toán thành công. Số tiền: %1$s ₫. Phương thức: %2$s. Thời gian: %3$s.', 'tingee-gateway' ),
+					__( 'Tingee (Chế độ B) xác nhận thanh toán thành công. Số tiền: %1$s ₫. Phương thức: %2$s. Thời gian: %3$s.', 'heno-tingee-gateway-for-woocommerce' ),
 					number_format( $received_amount, 0, ',', '.' ),
 					! empty( $payment_method ) ? $payment_method : '—',
 					! empty( $paid_at ) ? $paid_at : current_time( 'd/m/Y H:i:s' )
@@ -493,7 +493,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: 1: Tingee order ID, 2: WooCommerce order ID */
-					__( 'Webhook Mode B orderId=%1$s: thanh toán thành công. Đơn #%2$d → Processing.', 'tingee-gateway' ),
+					__( 'Webhook Mode B orderId=%1$s: thanh toán thành công. Đơn #%2$d → Processing.', 'heno-tingee-gateway-for-woocommerce' ),
 					$tingee_order_id,
 					$order->get_id()
 				),
@@ -504,7 +504,7 @@ class Tingee_Webhook {
 			$order->add_order_note(
 				sprintf(
 					/* translators: 1: số tiền nhận, 2: số tiền cần */
-					__( '[Cảnh báo] Tingee (Chế độ B) nhận THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Đơn giữ On-Hold — vui lòng xử lý thủ công.', 'tingee-gateway' ),
+					__( '[Cảnh báo] Tingee (Chế độ B) nhận THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Đơn giữ On-Hold — vui lòng xử lý thủ công.', 'heno-tingee-gateway-for-woocommerce' ),
 					number_format( $received_amount, 0, ',', '.' ),
 					number_format( $expected_amount, 0, ',', '.' )
 				),
@@ -515,7 +515,7 @@ class Tingee_Webhook {
 			$this->log(
 				sprintf(
 					/* translators: 1: Tingee order ID, 2: received amount, 3: expected amount, 4: WooCommerce order ID */
-					__( 'Webhook Mode B orderId=%1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold.', 'tingee-gateway' ),
+					__( 'Webhook Mode B orderId=%1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold.', 'heno-tingee-gateway-for-woocommerce' ),
 					$tingee_order_id,
 					$received_amount,
 					$expected_amount,

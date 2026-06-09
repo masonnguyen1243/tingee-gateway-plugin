@@ -1,17 +1,18 @@
 <?php
 /**
- * Plugin Name:       Tingee Gateway for WooCommerce
+ * Plugin Name:       HENO Tingee Gateway for WooCommerce
  * Plugin URI:        https://developers.tingee.vn
  * Description:       Tích hợp cổng thanh toán Tingee (by HENO) vào WooCommerce. Hỗ trợ QR động, chuyển khoản ngân hàng tự động và Webhook IPN.
  * Version:           1.0.0
  * Author:            HENO
- * Author URI:        https://heno.vn
+ * Author URI:        https://heno.com.vn
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       tingee-gateway
+ * Text Domain:       heno-tingee-gateway-for-woocommerce
  * Domain Path:       /languages
  * Requires at least: 5.6
  * Requires PHP:      7.2
+ * Requires Plugins:  woocommerce
  * WC requires at least: 5.0
  * WC tested up to:   9.0
  */
@@ -92,11 +93,11 @@ function tingee_woocommerce_missing_notice() {
 	<div class="notice notice-error">
 		<p>
 			<?php
-			$wc_link = '<a href="' . esc_url( admin_url( 'plugin-install.php?s=woocommerce&tab=search&type=term' ) ) . '">' . esc_html__( 'WooCommerce', 'tingee-gateway' ) . '</a>';
+			$wc_link = '<a href="' . esc_url( admin_url( 'plugin-install.php?s=woocommerce&tab=search&type=term' ) ) . '">' . esc_html__( 'WooCommerce', 'heno-tingee-gateway-for-woocommerce' ) . '</a>';
 			echo wp_kses_post(
 				sprintf(
 					/* translators: %s: WooCommerce plugin link */
-					__( '<strong>Tingee Gateway</strong> yêu cầu %s phải được cài đặt và kích hoạt.', 'tingee-gateway' ),
+					__( '<strong>Tingee Gateway</strong> yêu cầu %s phải được cài đặt và kích hoạt.', 'heno-tingee-gateway-for-woocommerce' ),
 					$wc_link
 				)
 			);
@@ -173,7 +174,7 @@ function tingee_ajax_test_connection() {
 
 	// Chỉ admin mới được phép.
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
-		wp_send_json_error( array( 'message' => __( 'Bạn không có quyền thực hiện thao tác này.', 'tingee-gateway' ) ) );
+		wp_send_json_error( array( 'message' => __( 'Bạn không có quyền thực hiện thao tác này.', 'heno-tingee-gateway-for-woocommerce' ) ) );
 	}
 
 	// Lấy và sanitize credentials từ form.
@@ -181,7 +182,7 @@ function tingee_ajax_test_connection() {
 	$secret_token = isset( $_POST['secret_token'] ) ? sanitize_text_field( wp_unslash( $_POST['secret_token'] ) ) : '';
 
 	if ( empty( $client_id ) || empty( $secret_token ) ) {
-		wp_send_json_error( array( 'message' => __( 'Vui lòng nhập đầy đủ Client ID và Secret Token trước khi kiểm tra.', 'tingee-gateway' ) ) );
+		wp_send_json_error( array( 'message' => __( 'Vui lòng nhập đầy đủ Client ID và Secret Token trước khi kiểm tra.', 'heno-tingee-gateway-for-woocommerce' ) ) );
 	}
 
 	// Gọi API /v1/get-banks với credentials từ form (không dùng credentials đã lưu).
@@ -193,7 +194,7 @@ function tingee_ajax_test_connection() {
 			array(
 				'message' => sprintf(
 					/* translators: %d: số lượng ngân hàng */
-					__( 'Kết nối thành công! Tingee hỗ trợ %d ngân hàng.', 'tingee-gateway' ),
+					__( 'Kết nối thành công! Tingee hỗ trợ %d ngân hàng.', 'heno-tingee-gateway-for-woocommerce' ),
 					$bank_count
 				),
 			)
@@ -201,13 +202,13 @@ function tingee_ajax_test_connection() {
 	} else {
 		// Phân loại lỗi theo mã Tingee để hiện thông báo rõ hơn.
 		$error_hints = array(
-			'97' => __( 'Sai chữ ký — kiểm tra lại Secret Token.', 'tingee-gateway' ),
-			'90' => __( 'Sai định dạng timestamp — lỗi server. Vui lòng thử lại.', 'tingee-gateway' ),
-			'91' => __( 'Request quá hạn — kiểm tra đồng hồ hệ thống server của bạn.', 'tingee-gateway' ),
+			'97' => __( 'Sai chữ ký — kiểm tra lại Secret Token.', 'heno-tingee-gateway-for-woocommerce' ),
+			'90' => __( 'Sai định dạng timestamp — lỗi server. Vui lòng thử lại.', 'heno-tingee-gateway-for-woocommerce' ),
+			'91' => __( 'Request quá hạn — kiểm tra đồng hồ hệ thống server của bạn.', 'heno-tingee-gateway-for-woocommerce' ),
 		);
 
 		$hint = isset( $error_hints[ $result['tingee_code'] ] ) ? $error_hints[ $result['tingee_code'] ] : '';
-		$msg  = $result['message'] ? $result['message'] : __( 'Kết nối thất bại.', 'tingee-gateway' );
+		$msg  = $result['message'] ? $result['message'] : __( 'Kết nối thất bại.', 'heno-tingee-gateway-for-woocommerce' );
 
 		if ( $hint ) {
 			$msg .= ' — ' . $hint;
@@ -236,14 +237,14 @@ function tingee_ajax_fetch_accounts() {
 	check_ajax_referer( 'tingee_test_connection_nonce', 'nonce' );
 
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
-		wp_send_json_error( array( 'message' => __( 'Bạn không có quyền thực hiện thao tác này.', 'tingee-gateway' ) ) );
+		wp_send_json_error( array( 'message' => __( 'Bạn không có quyền thực hiện thao tác này.', 'heno-tingee-gateway-for-woocommerce' ) ) );
 	}
 
 	$client_id    = isset( $_POST['client_id'] ) ? sanitize_text_field( wp_unslash( $_POST['client_id'] ) ) : '';
 	$secret_token = isset( $_POST['secret_token'] ) ? sanitize_text_field( wp_unslash( $_POST['secret_token'] ) ) : '';
 
 	if ( empty( $client_id ) || empty( $secret_token ) ) {
-		wp_send_json_error( array( 'message' => __( 'Vui lòng nhập đầy đủ Client ID và Secret Token.', 'tingee-gateway' ) ) );
+		wp_send_json_error( array( 'message' => __( 'Vui lòng nhập đầy đủ Client ID và Secret Token.', 'heno-tingee-gateway-for-woocommerce' ) ) );
 	}
 
 	// Lấy danh sách VA accounts và banks song song (tuần tự trong PHP).
@@ -251,7 +252,7 @@ function tingee_ajax_fetch_accounts() {
 	$banks_result    = Tingee_API::get_banks( $client_id, $secret_token );
 
 	if ( ! $accounts_result['success'] ) {
-		$msg = $accounts_result['message'] ? $accounts_result['message'] : __( 'Không thể lấy danh sách tài khoản từ Tingee.', 'tingee-gateway' );
+		$msg = $accounts_result['message'] ? $accounts_result['message'] : __( 'Không thể lấy danh sách tài khoản từ Tingee.', 'heno-tingee-gateway-for-woocommerce' );
 		wp_send_json_error( array( 'message' => $msg ) );
 	}
 

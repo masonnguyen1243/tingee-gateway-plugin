@@ -78,7 +78,7 @@ final class Tingee_Gateway_Blocks extends AbstractPaymentMethodType {
 
 		// Cho phép dịch chuỗi trong file JS nếu có file .po tương ứng.
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'tingee-blocks', 'tingee-gateway' );
+			wp_set_script_translations( 'tingee-blocks', 'heno-tingee-gateway-for-woocommerce' );
 		}
 
 		return array( 'tingee-blocks' );
@@ -94,7 +94,7 @@ final class Tingee_Gateway_Blocks extends AbstractPaymentMethodType {
 		return array(
 			'title'       => $this->gateway
 				? $this->gateway->title
-				: $this->get_setting( 'title', __( 'Chuyển khoản ngân hàng (Tingee)', 'tingee-gateway' ) ),
+				: $this->get_setting( 'title', __( 'Chuyển khoản ngân hàng (Tingee)', 'heno-tingee-gateway-for-woocommerce' ) ),
 			'description' => $this->gateway
 				? $this->gateway->description
 				: $this->get_setting( 'description', '' ),
