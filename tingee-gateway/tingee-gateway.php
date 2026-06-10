@@ -5,7 +5,7 @@
  * Description:       Tích hợp cổng thanh toán Tingee (by HENO) vào WooCommerce. Hỗ trợ QR động, chuyển khoản ngân hàng tự động và Webhook IPN.
  * Version:           1.0.0
  * Author:            HENO
- * Author URI:        https://heno.com.vn
+ * Author URI:        https://heno.vn
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       heno-tingee-gateway-for-woocommerce
