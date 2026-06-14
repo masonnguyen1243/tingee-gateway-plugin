@@ -14,141 +14,122 @@ Integrate Tingee (by HENO) payment gateway into WooCommerce. Supports VietQR, ba
 
 == Description ==
 
-**HENO Tingee Gateway for WooCommerce** connects your WooCommerce store to the [Tingee](https://tingee.vn) payment infrastructure by HENO, allowing customers to pay via bank transfer (VietQR) with **automatic order confirmation** — no manual reconciliation needed.
+**HENO Tingee Gateway for WooCommerce** kết nối cửa hàng WooCommerce của bạn với hạ tầng thanh toán [Tingee](https://tingee.vn) của HENO, cho phép khách hàng thanh toán qua chuyển khoản ngân hàng (VietQR) với **xác nhận đơn hàng tự động** — không cần đối soát thủ công.
 
-= How it works =
+= Cách hoạt động =
 
-**Mode A — QR + Webhook (default)**
+**QR + Webhook**
 
-1. Customer selects "Tingee" at checkout.
-2. Plugin generates a QR code linked to the order.
-3. Thank-you page displays the QR code, account number, amount, and transfer reference.
-4. Customer scans and transfers → Tingee sends a Webhook (IPN) to your site.
-5. Plugin verifies the signature, matches the transaction, and automatically marks the order as paid — **within 5–15 seconds**.
+1. Khách hàng chọn "Tingee" khi thanh toán.
+2. Plugin tạo mã QR liên kết với đơn hàng.
+3. Trang cảm ơn hiển thị mã QR, số tài khoản, số tiền và nội dung chuyển khoản.
+4. Khách hàng quét và chuyển khoản → Tingee gửi Webhook (IPN) về site của bạn.
+5. Plugin xác thực chữ ký, khớp giao dịch và tự động đánh dấu đơn hàng là đã thanh toán — **trong vòng 5–15 giây**.
 
-**Mode B — Redirect**
+= Tính năng nổi bật =
 
-1. Customer selects Tingee → plugin creates a Checkout URL via Tingee API.
-2. Customer is redirected to Tingee's hosted payment page.
-3. After payment → redirected back to your site; Webhook confirms the order.
+* **Xác nhận đơn hàng tự động** qua Webhook IPN — không cần kiểm tra thủ công.
+* **Hiển thị VietQR** trên trang cảm ơn với nút sao chép nhanh số tài khoản, số tiền và nội dung chuyển khoản.
+* **Xác thực chữ ký HMAC-SHA512** cho mọi webhook — các yêu cầu giả mạo bị từ chối với mã 401.
+* **Bảo vệ idempotency** — webhook bị gửi lại (tối đa 5 lần) không bao giờ ghi nợ đơn hàng hai lần.
+* **Tương thích Checkout Blocks** — hoạt động với cả shortcode cũ và WooCommerce Checkout Blocks mới.
+* **Tương thích HPOS** — hỗ trợ WooCommerce High-Performance Order Storage.
+* **Tích hợp WC Logger** — hoạt động webhook được ghi log tại WooCommerce > Trạng thái > Logs (`tingee-webhook`), thông tin bí mật được ẩn đi.
+* **Nút kiểm tra kết nối** — xác minh Client ID và Secret Token trước khi đưa vào hoạt động thực tế.
+* **Hỗ trợ tiếng Việt và tiếng Anh**.
 
-= Key Features =
+= Yêu cầu =
 
-* **Automatic order confirmation** via Webhook IPN — no manual checking.
-* **VietQR display** on the thank-you page with one-click copy for account number, amount, and transfer reference.
-* **HMAC-SHA512 signature verification** for every webhook — forged requests are rejected with 401.
-* **Idempotency protection** — retried webhooks (up to 5 times) never double-charge an order.
-* **Dual integration modes** — admin selects QR+Webhook or Redirect in settings.
-* **Checkout Blocks compatible** — works with both classic shortcode and the new WooCommerce Checkout Blocks.
-* **HPOS compatible** — supports WooCommerce High-Performance Order Storage.
-* **WC Logger integration** — webhook activity logged under WooCommerce > Status > Logs (`tingee-webhook`), secrets masked.
-* **Connection test button** — verify your Client ID and Secret Token before going live.
-* **Vietnamese and English** translations included.
-
-= Requirements =
-
-* WordPress 5.6 or higher
-* WooCommerce 5.0 or higher
-* PHP 7.2 or higher
-* A [Tingee](https://app.tingee.vn) merchant account with Client ID and Secret Token
+* WordPress 5.6 trở lên
+* WooCommerce 5.0 trở lên
+* PHP 7.2 trở lên
+* Tài khoản merchant [Tingee](https://app.tingee.vn) có Client ID và Secret Token
 
 == Installation ==
 
 = Automatic installation =
 
-1. Log in to your WordPress admin panel.
-2. Go to **Plugins > Add New**.
-3. Search for **HENO Tingee Gateway for WooCommerce**.
-4. Click **Install Now**, then **Activate**.
+1. Đăng nhập vào trang quản trị WordPress của bạn.
+2. Vào **Plugins > Thêm mới**.
+3. Tìm kiếm **HENO Tingee Gateway for WooCommerce**.
+4. Nhấn **Cài đặt ngay**, sau đó **Kích hoạt**.
 
 = Manual installation =
 
-1. Download the plugin zip file.
-2. Go to **Plugins > Add New > Upload Plugin**.
-3. Choose the zip file and click **Install Now**, then **Activate**.
+1. Tải file zip của plugin.
+2. Vào **Plugins > Thêm mới > Tải Plugin lên**.
+3. Chọn file zip và nhấn **Cài đặt ngay**, sau đó **Kích hoạt**.
 
 = Configuration =
 
-1. Go to **WooCommerce > Settings > Payments**.
-2. Find **Tingee Gateway** and click **Manage**.
-3. Fill in the following fields:
-   * **Environment** — choose Sandbox for testing or Production for live.
-   * **Client ID** — from your Tingee developer dashboard.
-   * **Secret Token** — from your Tingee developer dashboard.
-   * **VA Account Number** — your merchant virtual account number.
-   * **Bank BIN** — the BIN code of the bank that holds your VA.
-   * **Integration Mode** — Mode A (QR + Webhook) or Mode B (Redirect).
-4. Click **Test Connection** to verify your credentials.
-5. Copy the **Webhook URL** displayed in the settings and paste it into your Tingee developer dashboard under Webhook configuration.
-6. Save settings.
+1. Vào **WooCommerce > Cài đặt > Thanh toán**.
+2. Tìm **Tingee Gateway** và nhấn **Quản lý**.
+3. Điền vào các trường sau:
+   * **Môi trường** — chọn Production.
+   * **Client ID** — lấy từ trang quản lý developer của Tingee.
+   * **Secret Token** — lấy từ trang quản lý developer của Tingee.
+4. Nhấn **Kiểm tra kết nối** để xác minh thông tin đăng nhập.
+5. Sao chép **URL Webhook** hiển thị trong trang cài đặt và dán vào trang quản lý developer Tingee trong phần cấu hình Webhook.
+6. Lưu cài đặt.
 
 == Frequently Asked Questions ==
 
-= Where do I get my Client ID and Secret Token? =
+= Tôi lấy Client ID và Secret Token ở đâu? =
 
-Log in to your Tingee merchant account at [app.tingee.vn](https://app.tingee.vn), navigate to the **Developers** section, and copy your Client ID and Secret Token.
+Đăng nhập vào tài khoản merchant Tingee tại [app.tingee.vn](https://app.tingee.vn), vào mục **Developers** và sao chép Client ID cùng Secret Token của bạn.
 
-= What is the Webhook URL and where do I put it? =
+= URL Webhook là gì và tôi điền vào đâu? =
 
-The Webhook URL is shown in the plugin's settings page (read-only field). Copy it and paste it into your Tingee developer dashboard under the Webhook / IPN configuration section. Tingee will send payment notifications to this URL.
+URL Webhook được hiển thị trong trang cài đặt plugin (trường chỉ đọc). Sao chép và dán vào trang quản lý developer Tingee trong phần cấu hình Webhook / IPN. Tingee sẽ gửi thông báo thanh toán đến URL này.
 
-= Do I need ngrok or a public URL to receive webhooks? =
+= Tôi có cần ngrok hoặc URL công khai để nhận webhook không? =
 
-Yes, during local development you need a tool like [ngrok](https://ngrok.com) to create a public URL that Tingee can reach. On a live server with a real domain name, no extra setup is needed.
+Có, trong quá trình phát triển cục bộ bạn cần công cụ như [ngrok](https://ngrok.com) để tạo URL công khai mà Tingee có thể truy cập. Trên server thực tế với tên miền thật, không cần cấu hình thêm.
 
-= The QR code says "Dynamic QR not supported" — what do I do? =
+= Điều gì xảy ra nếu khách hàng chuyển sai số tiền? =
 
-Some Tingee accounts have dynamic QR disabled by default. The plugin automatically falls back to **Static QR** (VietQR standard). In this mode, order matching relies on the transfer reference (order number) in the payment description rather than a bill ID. Contact Tingee support to enable dynamic QR for your account.
+Nếu số tiền chuyển khoản ít hơn tổng đơn hàng, plugin giữ đơn hàng ở trạng thái **Chờ xử lý** và thêm ghi chú quản trị kèm số tiền đã nhận. Bạn có thể xem xét và xử lý thanh toán thiếu thủ công. Trường hợp chuyển thừa cũng theo luồng tương tự — đơn hàng được đánh dấu đã thanh toán và ghi chú chênh lệch.
 
-= What happens if a customer sends the wrong amount? =
+= Có an toàn không? Ai đó có thể giả mạo webhook không? =
 
-If the transferred amount is less than the order total, the plugin keeps the order in **On-Hold** status and adds an admin note with the received amount. You can review and handle partial payments manually. Over-payments follow the same flow — the order is marked paid and the discrepancy is noted.
+Mọi webhook đều được xác thực bằng **HMAC-SHA512** với Secret Token của bạn. Bất kỳ yêu cầu nào có chữ ký không hợp lệ hoặc thiếu chữ ký đều nhận phản hồi `401 Unauthorized` và đơn hàng không bao giờ bị thay đổi. Tấn công phát lại cũng được ngăn chặn: mỗi ID giao dịch được lưu lại sau khi xử lý, nên việc gửi lại cùng một webhook không có tác dụng.
 
-= Is it safe? Can someone fake a webhook? =
+= Có hoạt động với WooCommerce Checkout Blocks mới không? =
 
-Every webhook is verified using **HMAC-SHA512** with your Secret Token. Any request with an invalid or missing signature receives a `401 Unauthorized` response and the order is never modified. Replay attacks are also prevented: each transaction ID is stored after processing, so resending the same webhook has no effect.
+Có. Plugin đăng ký phương thức thanh toán tương thích Blocks thông qua `AbstractPaymentMethodType`, nên hiển thị đúng cả ở checkout shortcode cũ lẫn checkout dạng block mới.
 
-= Does it work with the new WooCommerce Checkout Blocks? =
+= Có tương thích với WooCommerce High-Performance Order Storage (HPOS) không? =
 
-Yes. The plugin registers a Blocks-compatible payment method via `AbstractPaymentMethodType`, so it appears correctly in both the classic shortcode checkout and the new block-based checkout.
+Có. Toàn bộ dữ liệu đơn hàng được đọc và ghi bằng `wc_get_order()`, `$order->get_meta()` và `$order->update_meta_data()` — tương thích hoàn toàn với HPOS.
 
-= Is it compatible with WooCommerce High-Performance Order Storage (HPOS)? =
+= Cài đặt của tôi có bị xóa nếu tắt plugin không? =
 
-Yes. All order data is read and written using `wc_get_order()`, `$order->get_meta()`, and `$order->update_meta_data()` — fully compatible with HPOS.
-
-= Can I use both Sandbox and Production at the same time? =
-
-No. The **Environment** setting applies globally. Switch to Production only when you are ready to accept real payments.
-
-= Will my settings be deleted if I deactivate the plugin? =
-
-No. Settings are preserved when you deactivate. They are only removed when you **delete** the plugin, and only if the "Delete data on uninstall" option is enabled in settings.
+Không. Cài đặt được giữ nguyên khi bạn vô hiệu hóa plugin. Chúng chỉ bị xóa khi bạn **xóa** plugin, và chỉ khi tùy chọn "Xóa dữ liệu khi gỡ cài đặt" được bật trong cài đặt.
 
 == External Services ==
 
-This plugin connects to the **Tingee** payment API (operated by HENO) to generate QR codes, create payment links, and verify Webhook (IPN) notifications when a payment is completed.
+Plugin này kết nối với **Tingee** payment API (vận hành bởi HENO) để tạo mã QR, tạo link thanh toán và xác minh thông báo Webhook (IPN) khi thanh toán hoàn tất.
 
-**Data sent to Tingee:**
+**Dữ liệu gửi đến Tingee:**
 
-* Order amount, order ID, and transfer reference — sent when creating a payment QR or checkout URL.
-* No customer personal data (name, email, address) is forwarded to the Tingee API by this plugin.
+* Số tiền đơn hàng, ID đơn hàng và nội dung chuyển khoản — gửi khi tạo QR thanh toán hoặc URL thanh toán.
+* Plugin không chuyển tiếp thông tin cá nhân của khách hàng (tên, email, địa chỉ) đến Tingee API.
 
-**When data is sent:**
+**Khi nào dữ liệu được gửi:**
 
-* When the customer places an order and clicks "Pay" — the plugin calls the Tingee API to generate a QR code or hosted payment URL.
-* When Tingee sends a Webhook to your site (this is *incoming* data from Tingee, not outgoing).
+* Khi khách hàng đặt hàng và nhấn "Thanh toán" — plugin gọi Tingee API để tạo mã QR hoặc URL thanh toán lưu trữ.
+* Khi Tingee gửi Webhook đến site của bạn (đây là dữ liệu *đến* từ Tingee, không phải đi ra).
 
-**Tingee API endpoints used:**
+**Các endpoint Tingee API được sử dụng:**
 
 * Production: `https://open-api.tingee.vn`
-* Sandbox (UAT): `https://uat-open-api.tingee.vn`
 
-By using this plugin, your store connects to Tingee's infrastructure. Please review Tingee's policies before going live:
+Khi sử dụng plugin này, cửa hàng của bạn kết nối với hạ tầng của Tingee. Vui lòng đọc chính sách của Tingee trước khi đưa vào hoạt động thực tế:
 
-* [Terms of Service](https://drive.google.com/file/d/1snw0yOyz6hmanARQDWAX8DEMiG4r6Vmp/view)
-* [Privacy Policy](https://drive.google.com/file/d/1baa2tZPZvq9HK6w1Tzi2okAjdeo7bJhx/view)
+* [Điều khoản dịch vụ](https://drive.google.com/file/d/1snw0yOyz6hmanARQDWAX8DEMiG4r6Vmp/view)
+* [Chính sách bảo mật](https://drive.google.com/file/d/1baa2tZPZvq9HK6w1Tzi2okAjdeo7bJhx/view)
 
-For developer documentation, visit [https://developers.tingee.vn](https://developers.tingee.vn).
+Tài liệu dành cho nhà phát triển, truy cập [https://developers.tingee.vn](https://developers.tingee.vn).
 
 == Screenshots ==
 
