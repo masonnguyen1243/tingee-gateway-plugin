@@ -18,6 +18,23 @@
 
 -->
 
+### 2026-06-20 — [Fix lỗi i18n] Đổi tên file bản dịch để khớp Text Domain
+
+- **Loại**: [Fix lỗi]
+- **Mô tả**: Sửa lỗi WordPress không nạp được bản dịch Tiếng Việt vì tên file `.po/.mo` không khớp với `Text Domain` khai báo trong plugin header.
+  - **Nguyên nhân**: Plugin header khai báo `Text Domain: heno-tingee-gateway-for-woocommerce` nhưng file bản dịch đặt tên theo prefix cũ `tingee-gateway-*`. WordPress tìm file theo pattern `{text-domain}-{locale}.mo` nên không tìm thấy.
+  - **Sửa**: Đổi tên 5 file trong `languages/` từ `tingee-gateway-*` → `heno-tingee-gateway-for-woocommerce-*`.
+  - **Sửa thêm**: Cập nhật header `X-Domain` trong 3 file `.po/.pot` từ `tingee-gateway` → `heno-tingee-gateway-for-woocommerce`.
+- **File thay đổi**:
+  - `languages/tingee-gateway-vi_VN.po` → `languages/heno-tingee-gateway-for-woocommerce-vi_VN.po`
+  - `languages/tingee-gateway-vi_VN.mo` → `languages/heno-tingee-gateway-for-woocommerce-vi_VN.mo`
+  - `languages/tingee-gateway-en_US.po` → `languages/heno-tingee-gateway-for-woocommerce-en_US.po`
+  - `languages/tingee-gateway-en_US.mo` → `languages/heno-tingee-gateway-for-woocommerce-en_US.mo`
+  - `languages/tingee-gateway.pot` → `languages/heno-tingee-gateway-for-woocommerce.pot`
+- **Việc cần làm thủ công tiếp theo**: Submit bản dịch vi_VN lên translate.wordpress.org (xem T9.7 trong implementation-plan.md) để banner "Chưa có tiếng Việt" trên trang WP.org biến mất.
+
+---
+
 ### 2026-06-04 — [Task T9.3] Final Security Checklist
 
 - **Loại**: [Bảo mật]

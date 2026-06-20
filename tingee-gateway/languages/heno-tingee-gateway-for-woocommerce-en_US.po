@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: xgettext 0.26\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Domain: tingee-gateway\n"
+"X-Domain: heno-tingee-gateway-for-woocommerce\n"
 
 #: includes/class-tingee-api.php:156
 msgid "Client ID hoặc Secret Token chưa được cấu hình."

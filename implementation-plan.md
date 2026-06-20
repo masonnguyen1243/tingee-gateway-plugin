@@ -149,6 +149,11 @@ Ký hiệu độ ưu tiên: 🔴 bắt buộc cho v1.0 · 🟡 nên có · 🟢 
 - [ ] **T9.4** 🟡 Chuẩn bị assets WP.org: `icon-128x128.png`, `banner-772x250.png`, ảnh screenshot.
 - [ ] **T9.5** 🔴 Đăng nhập WordPress.org → **Submit a plugin** → upload zip → chờ review (1–10 ngày).
 - [ ] **T9.6** 🔴 Sau khi duyệt: nhận SVN repo, commit code vào `trunk`, tag version → plugin lên kho.
+- [ ] **T9.7** 🟡 Submit bản dịch Tiếng Việt lên translate.wordpress.org để xóa banner "Plugin chưa có sẵn tiếng Việt":
+  - Vào https://translate.wordpress.org/projects/wp-plugins/heno-tingee-gateway-for-woocommerce/
+  - Sub-project "Development" → upload file `.pot` mới (`heno-tingee-gateway-for-woocommerce.pot`)
+  - Dịch nội dung `readme.txt` (Description, FAQ, Changelog) sang `vi_VN` trực tiếp trên GlotPress
+  - Chờ PTE/GTE approve (thường 1–3 ngày) → banner tự biến mất
 
 ---
 

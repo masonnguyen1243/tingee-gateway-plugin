@@ -3,117 +3,116 @@
 # This file is distributed under the same license as the Tingee Gateway plugin.
 # Cường <cuongnb.heno@gmail.com>, 2026.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Tingee Gateway 1.0.0\n"
 "Report-Msgid-Bugs-To: cuongnb.heno@gmail.com\n"
 "POT-Creation-Date: 2026-06-04 14:06+0700\n"
-"PO-Revision-Date: 2026-06-04 14:06+0700\n"
-"Last-Translator: Cường <cuongnb.heno@gmail.com>\n"
-"Language-Team: Vietnamese <vi@li.org>\n"
-"Language: vi_VN\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: xgettext 0.26\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Domain: tingee-gateway\n"
+"X-Domain: heno-tingee-gateway-for-woocommerce\n"
 
 #: includes/class-tingee-api.php:156
 msgid "Client ID hoặc Secret Token chưa được cấu hình."
-msgstr "Client ID hoặc Secret Token chưa được cấu hình."
+msgstr ""
 
 #: includes/class-tingee-api.php:172
 msgid "Không thể encode body thành JSON."
-msgstr "Không thể encode body thành JSON."
+msgstr ""
 
 #. translators: 1: HTTP method, 2: endpoint, 3: error message
 #: includes/class-tingee-api.php:209
 #, php-format
 msgid "Tingee API lỗi mạng [%1$s %2$s]: %3$s"
-msgstr "Tingee API lỗi mạng [%1$s %2$s]: %3$s"
+msgstr ""
 
 #. translators: 1: HTTP code, 2: raw body (truncated)
 #: includes/class-tingee-api.php:239
 #, php-format
 msgid "Phản hồi không phải JSON hợp lệ (HTTP %1$d): %2$s"
-msgstr "Phản hồi không phải JSON hợp lệ (HTTP %1$d): %2$s"
+msgstr ""
 
 #. translators: 1: endpoint, 2: HTTP code, 3: Tingee code, 4: message
 #: includes/class-tingee-api.php:278
 #, php-format
 msgid "Tingee API lỗi [%1$s] HTTP=%2$d code=%3$s: %4$s"
-msgstr "Tingee API lỗi [%1$s] HTTP=%2$d code=%3$s: %4$s"
+msgstr ""
 
 #. translators: 1: HTTP method, 2: endpoint, 3: HTTP code
 #: includes/class-tingee-api.php:290
 #, php-format
 msgid "Tingee API thành công [%1$s %2$s] HTTP=%3$d"
-msgstr "Tingee API thành công [%1$s %2$s] HTTP=%3$d"
+msgstr ""
 
 #: includes/class-tingee-blocks.php:97 includes/class-tingee-gateway.php:94
 #: includes/class-tingee-gateway.php:196
 msgid "Chuyển khoản ngân hàng (Tingee)"
-msgstr "Chuyển khoản ngân hàng (Tingee)"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:79
 msgid "Tingee Gateway"
-msgstr "Tingee Gateway"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:80
 msgid "Thanh toán qua QR chuyển khoản ngân hàng sử dụng cổng Tingee (by HENO)."
-msgstr "Thanh toán qua QR chuyển khoản ngân hàng sử dụng cổng Tingee (by HENO)."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:95 includes/class-tingee-gateway.php:204
 msgid ""
 "Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán."
 msgstr ""
-"Quét mã QR để chuyển khoản. Đơn hàng tự động xác nhận sau khi thanh toán."
 
 #: includes/class-tingee-gateway.php:162 includes/class-tingee-gateway.php:323
 #: includes/class-tingee-gateway.php:362
 msgid "Kiểm tra kết nối"
-msgstr "Kiểm tra kết nối"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:163
 msgid "Đang kiểm tra..."
-msgstr "Đang kiểm tra..."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:164
 msgid "Vui lòng nhập Client ID và Secret Token trước."
-msgstr "Vui lòng nhập Client ID và Secret Token trước."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:165
 msgid "Lỗi kết nối mạng. Vui lòng thử lại."
-msgstr "Lỗi kết nối mạng. Vui lòng thử lại."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:186
 msgid "Bật/Tắt"
-msgstr "Bật/Tắt"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:188
 msgid "Bật Tingee Gateway"
-msgstr "Bật Tingee Gateway"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:193
 msgid "Tiêu đề"
-msgstr "Tiêu đề"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:195
 msgid "Tên phương thức thanh toán hiển thị cho khách hàng ở trang checkout."
-msgstr "Tên phương thức thanh toán hiển thị cho khách hàng ở trang checkout."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:201
 msgid "Mô tả"
-msgstr "Mô tả"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:203
 msgid "Mô tả ngắn hiển thị khi khách chọn phương thức này."
-msgstr "Mô tả ngắn hiển thị khi khách chọn phương thức này."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:212
 msgid "Kết nối Tingee"
-msgstr "Kết nối Tingee"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:216
 #, php-format
@@ -121,48 +120,44 @@ msgid ""
 "Lấy Client ID và Secret Token tại <a href=\"%s\" target=\"_blank\" "
 "rel=\"noopener noreferrer\">trang Developers của Tingee</a>."
 msgstr ""
-"Lấy Client ID và Secret Token tại <a href=\"%s\" target=\"_blank\" "
-"rel=\"noopener noreferrer\">trang Developers của Tingee</a>."
 
 #: includes/class-tingee-gateway.php:222
 msgid "Môi trường"
-msgstr "Môi trường"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:224
 msgid "Dùng Sandbox (UAT) để test, Production cho website thật."
-msgstr "Dùng Sandbox (UAT) để test, Production cho website thật."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:228
 msgid "Production (thật)"
-msgstr "Production (thật)"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:229
 msgid "Sandbox / UAT (test)"
-msgstr "Sandbox / UAT (test)"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:234
 msgid "Client ID"
-msgstr "Client ID"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:236
 msgid ""
 "Mã định danh đối tác do Tingee cung cấp. Header x-client-id trong mọi API "
 "request."
 msgstr ""
-"Mã định danh đối tác do Tingee cung cấp. Header x-client-id trong mọi API "
-"request."
 
 #: includes/class-tingee-gateway.php:243
 msgid "Secret Token"
-msgstr "Secret Token"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:245
 msgid "Khóa bí mật để sinh chữ ký HMAC-SHA512. Không chia sẻ cho bất kỳ ai."
-msgstr "Khóa bí mật để sinh chữ ký HMAC-SHA512. Không chia sẻ cho bất kỳ ai."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:251
 msgid "Số tài khoản VA nhận tiền"
-msgstr "Số tài khoản VA nhận tiền"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:253
 msgid ""
@@ -170,13 +165,10 @@ msgid ""
 "Tingee. Dùng để hiển thị QR cho khách và nhận thanh toán. Lấy trong mục quản "
 "lý tài khoản tại app.tingee.vn."
 msgstr ""
-"Số tài khoản ảo (Virtual Account — vaAccountNumber) của merchant trên "
-"Tingee. Dùng để hiển thị QR cho khách và nhận thanh toán. Lấy trong mục quản "
-"lý tài khoản tại app.tingee.vn."
 
 #: includes/class-tingee-gateway.php:260
 msgid "Mã BIN ngân hàng (bankBin)"
-msgstr "Mã BIN ngân hàng (bankBin)"
+msgstr ""
 
 #. translators: examples of Vietnamese bank BIN codes
 #: includes/class-tingee-gateway.php:263
@@ -186,80 +178,71 @@ msgid ""
 "(MB Bank), <code>970436</code> (Vietcombank), <code>970415</code> "
 "(VietinBank)."
 msgstr ""
-"Mã BIN của ngân hàng liên kết với tài khoản VA ở trên — bắt buộc để sinh QR "
-"động. Xem danh sách BIN trong tài liệu Tingee. Ví dụ: <code>970422</code> "
-"(MB Bank), <code>970436</code> (Vietcombank), <code>970415</code> "
-"(VietinBank)."
 
 #: includes/class-tingee-gateway.php:274
 msgid "Webhook IPN"
-msgstr "Webhook IPN"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:276
 msgid ""
 "Tingee sẽ gửi thông báo thanh toán về URL bên dưới. Hãy copy và điền vào "
 "trang Developers của Tingee."
 msgstr ""
-"Tingee sẽ gửi thông báo thanh toán về URL bên dưới. Hãy copy và điền vào "
-"trang Developers của Tingee."
 
 #: includes/class-tingee-gateway.php:280 includes/class-tingee-gateway.php:386
 msgid "URL Webhook"
-msgstr "URL Webhook"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:290
 msgid "Hiển thị tên ngân hàng"
-msgstr "Hiển thị tên ngân hàng"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:292
 msgid ""
 "Cách hiển thị tên ngân hàng trong bảng thông tin chuyển khoản trên trang "
 "thank-you."
 msgstr ""
-"Cách hiển thị tên ngân hàng trong bảng thông tin chuyển khoản trên trang "
-"thank-you."
 
 #: includes/class-tingee-gateway.php:296
 msgid "Cả tên đầy đủ và viết tắt"
-msgstr "Cả tên đầy đủ và viết tắt"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:297
 msgid "Chỉ tên đầy đủ"
-msgstr "Chỉ tên đầy đủ"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:298
 msgid "Chỉ tên viết tắt"
-msgstr "Chỉ tên viết tắt"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:299
 msgid "Không hiển thị"
-msgstr "Không hiển thị"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:304
 msgid "Tên ngân hàng đầy đủ"
-msgstr "Tên ngân hàng đầy đủ"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:306
 msgid "Ví dụ: Ngân hàng TMCP Quân đội"
-msgstr "Ví dụ: Ngân hàng TMCP Quân đội"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:313
 msgid "Tên ngân hàng viết tắt"
-msgstr "Tên ngân hàng viết tắt"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:315
 msgid "Ví dụ: MB Bank"
-msgstr "Ví dụ: MB Bank"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:325
 msgid ""
 "Bấm để kiểm tra Client ID và Secret Token có hợp lệ không (chưa cần lưu)."
 msgstr ""
-"Bấm để kiểm tra Client ID và Secret Token có hợp lệ không (chưa cần lưu)."
 
 #: includes/class-tingee-gateway.php:329
 msgid "Chế độ tích hợp"
-msgstr "Chế độ tích hợp"
+msgstr ""
 
 #. translators: thẻ strong để làm đậm tên chế độ
 #: includes/class-tingee-gateway.php:332
@@ -268,41 +251,32 @@ msgid ""
 "tự động xác nhận qua Webhook — khách không rời trang. <strong>Chế độ B</"
 "strong>: Chuyển hướng khách sang trang thanh toán của Tingee."
 msgstr ""
-"<strong>Chế độ A (khuyên dùng)</strong>: Hiển thị QR trực tiếp trên website, "
-"tự động xác nhận qua Webhook — khách không rời trang. <strong>Chế độ B</"
-"strong>: Chuyển hướng khách sang trang thanh toán của Tingee."
 
 #: includes/class-tingee-gateway.php:336
 msgid "Chế độ A — QR động + Webhook (khuyên dùng)"
-msgstr "Chế độ A — QR động + Webhook (khuyên dùng)"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:337
 msgid "Chế độ B — Redirect sang trang Tingee"
-msgstr "Chế độ B — Redirect sang trang Tingee"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:393
 msgid ""
 "Copy URL này, vào trang Developers của Tingee → cấu hình Webhook → dán vào ô "
 "\"Webhook URL\"."
 msgstr ""
-"Copy URL này, vào trang Developers của Tingee → cấu hình Webhook → dán vào ô "
-"\"Webhook URL\"."
 
 #: includes/class-tingee-gateway.php:428
 msgid ""
 "Cổng thanh toán Tingee chưa cấu hình đầy đủ (thiếu số VA hoặc mã BIN ngân "
 "hàng). Vui lòng liên hệ quản trị viên."
 msgstr ""
-"Cổng thanh toán Tingee chưa cấu hình đầy đủ (thiếu số VA hoặc mã BIN ngân "
-"hàng). Vui lòng liên hệ quản trị viên."
 
 #: includes/class-tingee-gateway.php:455
 msgid ""
 "Cổng thanh toán Tingee chưa cấu hình Client ID hoặc Secret Token. Vui lòng "
 "liên hệ quản trị viên."
 msgstr ""
-"Cổng thanh toán Tingee chưa cấu hình Client ID hoặc Secret Token. Vui lòng "
-"liên hệ quản trị viên."
 
 #. translators: %s: HTTP status code
 #: includes/class-tingee-gateway.php:475
@@ -311,120 +285,112 @@ msgid ""
 "Tingee API trả lỗi (HTTP %s). Vui lòng thử lại hoặc chọn phương thức thanh "
 "toán khác."
 msgstr ""
-"Tingee API trả lỗi (HTTP %s). Vui lòng thử lại hoặc chọn phương thức thanh "
-"toán khác."
 
 #. translators: %s: nội dung chuyển khoản (mã đơn hàng)
 #: includes/class-tingee-gateway.php:500
 #, php-format
 msgid "Chờ thanh toán qua Tingee (Static QR). Nội dung chuyển khoản: %s"
-msgstr "Chờ thanh toán qua Tingee (Static QR). Nội dung chuyển khoản: %s"
+msgstr ""
 
 #. translators: %s: mã đơn hàng WooCommerce
 #: includes/class-tingee-gateway.php:547
 #, php-format
 msgid "Thanh toán đơn hàng %s"
-msgstr "Thanh toán đơn hàng %s"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:571
 msgid ""
 "Không thể tạo link thanh toán Tingee. Vui lòng thử lại hoặc chọn phương thức "
 "thanh toán khác."
 msgstr ""
-"Không thể tạo link thanh toán Tingee. Vui lòng thử lại hoặc chọn phương thức "
-"thanh toán khác."
 
 #: includes/class-tingee-gateway.php:582
 msgid "Tingee trả về URL thanh toán không hợp lệ. Vui lòng thử lại."
-msgstr "Tingee trả về URL thanh toán không hợp lệ. Vui lòng thử lại."
+msgstr ""
 
 #. translators: %s: orderId trong Tingee
 #: includes/class-tingee-gateway.php:598
 #, php-format
 msgid "Chờ thanh toán qua Tingee (Chế độ B). Mã đơn Tingee: %s"
-msgstr "Chờ thanh toán qua Tingee (Chế độ B). Mã đơn Tingee: %s"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:656
 msgid "Thanh toán thành công! Đang chuyển hướng..."
-msgstr "Thanh toán thành công! Đang chuyển hướng..."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:657
 msgid "Đã sao chép"
-msgstr "Đã sao chép"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:697
 msgid "Đang xác nhận thanh toán từ Tingee..."
-msgstr "Đang xác nhận thanh toán từ Tingee..."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:702
 msgid ""
 "Vui lòng đợi trong giây lát. Trang sẽ tự động cập nhật khi nhận được xác "
 "nhận."
 msgstr ""
-"Vui lòng đợi trong giây lát. Trang sẽ tự động cập nhật khi nhận được xác "
-"nhận."
 
 #: includes/class-tingee-gateway.php:754
 msgid "Quét mã QR để thanh toán"
-msgstr "Quét mã QR để thanh toán"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:763 includes/class-tingee-gateway.php:768
 #: includes/class-tingee-gateway.php:773
 msgid "Mã QR thanh toán Tingee"
-msgstr "Mã QR thanh toán Tingee"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:784
 msgid "Ngân hàng"
-msgstr "Ngân hàng"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:789
 msgid "Số tài khoản"
-msgstr "Số tài khoản"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:795
 msgid "Sao chép số tài khoản"
-msgstr "Sao chép số tài khoản"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:796 includes/class-tingee-gateway.php:809
 #: includes/class-tingee-gateway.php:821
 msgid "Sao chép"
-msgstr "Sao chép"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:801
 msgid "Số tiền"
-msgstr "Số tiền"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:808
 msgid "Sao chép số tiền"
-msgstr "Sao chép số tiền"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:814
 msgid "Nội dung chuyển khoản"
-msgstr "Nội dung chuyển khoản"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:820
 msgid "Sao chép nội dung"
-msgstr "Sao chép nội dung"
+msgstr ""
 
 #: includes/class-tingee-gateway.php:831
 msgid "Đang chờ xác nhận thanh toán..."
-msgstr "Đang chờ xác nhận thanh toán..."
+msgstr ""
 
 #: includes/class-tingee-gateway.php:836
 msgid "Trang sẽ tự động cập nhật khi nhận được xác nhận thanh toán."
-msgstr "Trang sẽ tự động cập nhật khi nhận được xác nhận thanh toán."
+msgstr ""
 
 #: includes/class-tingee-webhook.php:85
 msgid ""
 "Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → "
 "Settings → Payments → Tingee để điền Secret Token."
 msgstr ""
-"Webhook nhận được nhưng Secret Token chưa cấu hình. Vào WooCommerce → "
-"Settings → Payments → Tingee để điền Secret Token."
 
 #: includes/class-tingee-webhook.php:97
 msgid "Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-signature."
-msgstr "Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-signature."
+msgstr ""
 
 #. translators: %s: 4 ký tự đầu của signature nhận được
 #: includes/class-tingee-webhook.php:108
@@ -432,27 +398,26 @@ msgstr "Webhook bị từ chối: thiếu header x-request-timestamp hoặc x-si
 msgid ""
 "Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s"
 msgstr ""
-"Webhook bị từ chối: chữ ký không hợp lệ. Signature nhận được bắt đầu bằng: %s"
 
 #. translators: 1: IP address của server Tingee, 2: timestamp từ header
 #: includes/class-tingee-webhook.php:120
 #, php-format
 msgid "Webhook hợp lệ nhận được. IP: %1$s. Timestamp: %2$s."
-msgstr "Webhook hợp lệ nhận được. IP: %1$s. Timestamp: %2$s."
+msgstr ""
 
 #: includes/class-tingee-webhook.php:133
 msgid "Webhook payload không hợp lệ (không phải JSON object)."
-msgstr "Webhook payload không hợp lệ (không phải JSON object)."
+msgstr ""
 
 #. translators: %s: billId từ Tingee
 #: includes/class-tingee-webhook.php:188
 #, php-format
 msgid "Webhook billId=%s: không tìm thấy đơn hàng tương ứng."
-msgstr "Webhook billId=%s: không tìm thấy đơn hàng tương ứng."
+msgstr ""
 
 #: includes/class-tingee-webhook.php:203
 msgid "Webhook thiếu cả billId lẫn content — không thể xác định đơn hàng."
-msgstr "Webhook thiếu cả billId lẫn content — không thể xác định đơn hàng."
+msgstr ""
 
 #. translators: %s: nội dung chuyển khoản
 #: includes/class-tingee-webhook.php:223
@@ -461,8 +426,6 @@ msgid ""
 "Webhook Static QR: không tìm được đơn on-hold nào với nội dung CK \"%s\". "
 "Khách có thể đã sửa nội dung CK — cần xử lý thủ công."
 msgstr ""
-"Webhook Static QR: không tìm được đơn on-hold nào với nội dung CK \"%s\". "
-"Khách có thể đã sửa nội dung CK — cần xử lý thủ công."
 
 #. translators: 1: order identifier (billId=... hoặc content=...), 2: transaction code
 #: includes/class-tingee-webhook.php:249
@@ -471,8 +434,6 @@ msgid ""
 "Webhook Mode A %1$s transactionCode=%2$s: đã xử lý trước đó, bỏ qua "
 "(idempotency)."
 msgstr ""
-"Webhook Mode A %1$s transactionCode=%2$s: đã xử lý trước đó, bỏ qua "
-"(idempotency)."
 
 #. translators: 1: số tiền nhận, 2: mã giao dịch, 3: nội dung CK, 4: thời gian GD
 #: includes/class-tingee-webhook.php:279
@@ -481,8 +442,6 @@ msgid ""
 "Tingee xác nhận thanh toán thành công. Số tiền: %1$s ₫. Mã GD: %2$s. Nội "
 "dung: %3$s. Thời gian GD: %4$s."
 msgstr ""
-"Tingee xác nhận thanh toán thành công. Số tiền: %1$s ₫. Mã GD: %2$s. Nội "
-"dung: %3$s. Thời gian GD: %4$s."
 
 #. translators: 1: order identifier, 2: transaction code, 3: WooCommerce order ID
 #: includes/class-tingee-webhook.php:293
@@ -491,8 +450,6 @@ msgid ""
 "Webhook Mode A %1$s transactionCode=%2$s: thanh toán thành công. Đơn #%3$d → "
 "Processing."
 msgstr ""
-"Webhook Mode A %1$s transactionCode=%2$s: thanh toán thành công. Đơn #%3$d → "
-"Processing."
 
 #. translators: 1: số tiền nhận, 2: số tiền cần, 3: mã giao dịch
 #: includes/class-tingee-webhook.php:305
@@ -501,8 +458,6 @@ msgid ""
 "[Cảnh báo] Tingee nhận thanh toán THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Mã "
 "GD: %3$s. Đơn giữ On-Hold — vui lòng xử lý thủ công."
 msgstr ""
-"[Cảnh báo] Tingee nhận thanh toán THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. Mã "
-"GD: %3$s. Đơn giữ On-Hold — vui lòng xử lý thủ công."
 
 #. translators: 1: order identifier, 2: received amount, 3: expected amount, 4: WooCommerce order ID
 #: includes/class-tingee-webhook.php:317
@@ -510,19 +465,18 @@ msgstr ""
 msgid ""
 "Webhook Mode A %1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold."
 msgstr ""
-"Webhook Mode A %1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ On-Hold."
 
 #. translators: %s: Tingee order ID
 #: includes/class-tingee-webhook.php:376
 #, php-format
 msgid "Webhook Mode B orderId=%s: không tìm thấy đơn hàng."
-msgstr "Webhook Mode B orderId=%s: không tìm thấy đơn hàng."
+msgstr ""
 
 #. translators: %s: webhook request ID
 #: includes/class-tingee-webhook.php:396
 #, php-format
 msgid "Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency)."
-msgstr "Webhook Mode B requestId=%s: đã xử lý, bỏ qua (idempotency)."
+msgstr ""
 
 #. translators: 1: status, 2: statusCode
 #: includes/class-tingee-webhook.php:411
@@ -531,8 +485,6 @@ msgid ""
 "Tingee (Chế độ B) thông báo: trạng thái \"%1$s\" (statusCode: %2$s). Đơn "
 "không được thanh toán."
 msgstr ""
-"Tingee (Chế độ B) thông báo: trạng thái \"%1$s\" (statusCode: %2$s). Đơn "
-"không được thanh toán."
 
 #. translators: 1: Tingee order ID, 2: status, 3: statusCode
 #: includes/class-tingee-webhook.php:422
@@ -541,8 +493,6 @@ msgid ""
 "Webhook Mode B orderId=%1$s: status=%2$s, statusCode=%3$s — không phải "
 "success."
 msgstr ""
-"Webhook Mode B orderId=%1$s: status=%2$s, statusCode=%3$s — không phải "
-"success."
 
 #. translators: 1: số tiền, 2: phương thức, 3: thời gian
 #: includes/class-tingee-webhook.php:448
@@ -551,8 +501,6 @@ msgid ""
 "Tingee (Chế độ B) xác nhận thanh toán thành công. Số tiền: %1$s ₫. Phương "
 "thức: %2$s. Thời gian: %3$s."
 msgstr ""
-"Tingee (Chế độ B) xác nhận thanh toán thành công. Số tiền: %1$s ₫. Phương "
-"thức: %2$s. Thời gian: %3$s."
 
 #. translators: 1: Tingee order ID, 2: WooCommerce order ID
 #: includes/class-tingee-webhook.php:462
@@ -560,7 +508,6 @@ msgstr ""
 msgid ""
 "Webhook Mode B orderId=%1$s: thanh toán thành công. Đơn #%2$d → Processing."
 msgstr ""
-"Webhook Mode B orderId=%1$s: thanh toán thành công. Đơn #%2$d → Processing."
 
 #. translators: 1: số tiền nhận, 2: số tiền cần
 #: includes/class-tingee-webhook.php:473
@@ -569,8 +516,6 @@ msgid ""
 "[Cảnh báo] Tingee (Chế độ B) nhận THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. "
 "Đơn giữ On-Hold — vui lòng xử lý thủ công."
 msgstr ""
-"[Cảnh báo] Tingee (Chế độ B) nhận THIẾU TIỀN. Nhận: %1$s ₫ / Cần: %2$s ₫. "
-"Đơn giữ On-Hold — vui lòng xử lý thủ công."
 
 #. translators: 1: Tingee order ID, 2: received amount, 3: expected amount, 4: WooCommerce order ID
 #: includes/class-tingee-webhook.php:484
@@ -579,8 +524,6 @@ msgid ""
 "Webhook Mode B orderId=%1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ "
 "On-Hold."
 msgstr ""
-"Webhook Mode B orderId=%1$s: THIẾU TIỀN. Nhận %2$d / Cần %3$d. Đơn #%4$d giữ "
-"On-Hold."
 
 #. translators: %s: WooCommerce plugin link
 #: tingee-gateway.php:98
@@ -589,35 +532,33 @@ msgid ""
 "<strong>Tingee Gateway</strong> yêu cầu <a href=\"%s\">WooCommerce</a> phải "
 "được cài đặt và kích hoạt."
 msgstr ""
-"<strong>Tingee Gateway</strong> yêu cầu <a href=\"%s\">WooCommerce</a> phải "
-"được cài đặt và kích hoạt."
 
 #: tingee-gateway.php:175
 msgid "Bạn không có quyền thực hiện thao tác này."
-msgstr "Bạn không có quyền thực hiện thao tác này."
+msgstr ""
 
 #: tingee-gateway.php:183
 msgid "Vui lòng nhập đầy đủ Client ID và Secret Token trước khi kiểm tra."
-msgstr "Vui lòng nhập đầy đủ Client ID và Secret Token trước khi kiểm tra."
+msgstr ""
 
 #. translators: %d: số lượng ngân hàng
 #: tingee-gateway.php:195
 #, php-format
 msgid "Kết nối thành công! Tingee hỗ trợ %d ngân hàng."
-msgstr "Kết nối thành công! Tingee hỗ trợ %d ngân hàng."
+msgstr ""
 
 #: tingee-gateway.php:203
 msgid "Sai chữ ký — kiểm tra lại Secret Token."
-msgstr "Sai chữ ký — kiểm tra lại Secret Token."
+msgstr ""
 
 #: tingee-gateway.php:204
 msgid "Sai định dạng timestamp — lỗi server. Vui lòng thử lại."
-msgstr "Sai định dạng timestamp — lỗi server. Vui lòng thử lại."
+msgstr ""
 
 #: tingee-gateway.php:205
 msgid "Request quá hạn — kiểm tra đồng hồ hệ thống server của bạn."
-msgstr "Request quá hạn — kiểm tra đồng hồ hệ thống server của bạn."
+msgstr ""
 
 #: tingee-gateway.php:209
 msgid "Kết nối thất bại."
-msgstr "Kết nối thất bại."
+msgstr ""
